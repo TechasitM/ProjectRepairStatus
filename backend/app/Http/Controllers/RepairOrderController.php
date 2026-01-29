@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\RepairStatusUpdated;
+use App\Http\Controllers\Mail\RepairStatusUpdated;
 use App\Models\RepairOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class RepairOrderController extends Controller
 {
@@ -107,3 +108,4 @@ class RepairOrderController extends Controller
         ]);
     }
 }
+

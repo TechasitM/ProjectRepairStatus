@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 class RepairStatusUpdated extends Mailable
 {
@@ -16,11 +17,13 @@ class RepairStatusUpdated extends Mailable
 
     public $repairOrder;
     public $statusName;
-    
-    public function __construct()
+    public $note;
+
+    public function __construct(RepairOrder $repairOrder, string $statusName, ?string $note = null)
     {
         $this->repairOrder = $repairOrder;
         $this->statusName = $statusName;
+        $this->note = $note;
     }
 
     /**
