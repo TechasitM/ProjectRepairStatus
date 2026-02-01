@@ -29,5 +29,10 @@ class DeviceController extends Controller
         Device::destroy($id);
         return response()->json(['message' => 'deleted']);
     }
+    public function dropdownCustomerDevice($customer_id) {
+        $devices=Device::where("customer_id",$customer_id)->get();
+            return response()->json([
+            'data' => $devices ]);
+    }
 }
 

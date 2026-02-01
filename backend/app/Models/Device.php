@@ -21,7 +21,12 @@ class Device extends Model
 
     public function repairOrders()
     {
-        return $this->hasMany(RepairOrder::class);
+        return $this->belongsToMany(
+            RepairOrder::class,
+            'repair_order_device',
+            'device_id',
+            'repair_order_id'
+        );
     }
 }
 

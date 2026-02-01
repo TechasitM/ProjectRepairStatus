@@ -12,7 +12,7 @@ class NotificationSeeder extends Seeder
     public function run(): void
     {
         Notification::create([
-            'repair_id' => 1,
+            'repair_order_id' => 1,
             'channel' => 'web',
             'sent_datetime' => Carbon::now()->subDay(),
             'notification_status' => 'sent'

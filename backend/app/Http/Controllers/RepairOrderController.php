@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Mail\RepairStatusUpdated;
+use App\Mail\RepairStatusUpdated;
 use App\Models\RepairOrder;
+use App\Models\RepairOrderDevice;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -14,14 +16,14 @@ class RepairOrderController extends Controller
     // ===== ADMIN =====
     public function index()
     {
-        return RepairOrder::with(['customer','device','status'])->get();
+        return RepairOrder::with(['customer','devices','status'])->get();
     }
     
     public function show($id)
     {
         $repair = RepairOrder::with([
             'customer',
-            'device',
+            'devices',
             'status',
             'timelines.status',
             'timelines.user'
@@ -38,20 +40,26 @@ class RepairOrderController extends Controller
         $validated = $request->validate([
             'repair_code'         => 'required|string|unique:repair_orders,repair_code',
             'customer_id'         => 'required|exists:customers,id',
-            'device_id'           => 'required|exists:devices,id',
             'user_id'             => 'required|exists:users,id',
             'status_id'           => 'required|exists:repair_statuses,id',
             'problem_description' => 'nullable|string',
             'receive_date'        => 'required|date',
         ]);
-
+        $deviceIds = $request['device_id'];
         // 2. บันทึกข้อมูล 
         $repairOrder = RepairOrder::create($validated);
-
+        if($repairOrder){
+            foreach ($deviceIds as $deviceId) {
+                RepairOrderDevice::create([
+                    'repair_order_id' => $repairOrder->id,
+                    'device_id' => $deviceId,
+                ]);
+            }
+        }
         // 3. ตอบกลับเป็น JSON พร้อมข้อมูลที่เพิ่งสร้าง
         return response()->json([
             'message' => 'สร้างใบสั่งซ่อมเรียบร้อยแล้ว',
-            'data'    => $repairOrder
+            'data'    => $request
          ], 201); 
     }
 
@@ -75,15 +83,18 @@ class RepairOrderController extends Controller
             'note' => 'nullable|string'
         ]);
 
-        $repair = RepairOrder::with(['customer', 'device', 'status'])->findOrFail($id);
+        $repair = RepairOrder::with(['customer', 'devices', 'status'])
+            ->findOrFail($id);
 
-        // อัปเดตตารางหลัก
-        $repair->update(['status_id' => $request->status_id]);
+        // 1. อัปเดตสถานะหลัก
+        $repair->update([
+            'status_id' => $request->status_id
+        ]);
 
-        // บันทึก Timeline
+        // 2. บันทึก Timeline
         $repair->timelines()->create([
             'status_id' => $request->status_id,
-            'user_id' => auth()->id() ?? 1, // ปรับตามระบบ Auth ของคุณ
+            'user_id' => auth()->id() ?? 1,
             'note' => $request->note ?? 'อัปเดตสถานะงานซ่อม',
             'update_datetime' => now()
         ]);
@@ -91,19 +102,44 @@ class RepairOrderController extends Controller
         $repair->refresh();
         $statusName = $repair->status->status_name;
 
-        // ส่งอีเมลผ่าน Mailtrap
+        // 3. ส่ง Email + บันทึก Notification
         if ($repair->customer->email) {
             try {
                 Mail::to($repair->customer->email)->send(
                     new RepairStatusUpdated($repair, $statusName, $request->note)
                 );
+
+                // ✅ บันทึกเฉพาะเมื่อส่งสำเร็จ
+                Notification::create([
+                    'repair_order_id' => $repair->id,
+                    'channel' => 'email',
+                    'sent_datetime' => now(),
+                    'notification_status' => 'sent'
+                ]);
+
+                \Log::info('EMAIL SENT', [
+                    'email' => $repair->customer->email,
+                    'repair_id' => $repair->id
+                ]);
+
             } catch (\Exception $e) {
-                \Log::error("Mail Error: " . $e->getMessage());
+
+                // ❌ Mail fail → log failed
+                Notification::create([
+                    'repair_order_id' => $repair->id,
+                    'channel' => 'email',
+                    'sent_datetime' => now(),
+                    'notification_status' => 'failed'
+                ]);
+
+                \Log::error('MAIL ERROR', [
+                    'error' => $e->getMessage()
+                ]);
             }
         }
 
         return response()->json([
-            'message' => 'Updated and Email Sent!',
+            'message' => 'Status updated successfully',
             'data' => $repair->load(['status', 'timelines.status'])
         ]);
     }

@@ -1,29 +1,25 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-/**
- * Middleware สำหรับป้องกัน route ฝั่ง Admin
- * ใช้ cookie ชื่อ "token" (ได้จาก Laravel Sanctum)
- */
+// middleware.js
 export function middleware(request) {
   const token = request.cookies.get("token")?.value;
+  const role = request.cookies.get("role")?.value;
   const { pathname } = request.nextUrl;
 
-  // ป้องกันเฉพาะ path /admin
-  if (pathname.startsWith("/admin")) {
-    // ถ้าไม่มี token → เด้งไปหน้า login
-    if (!token) {
-      const loginUrl = new URL("/login", request.url);
-      return NextResponse.redirect(loginUrl);
+  // โซน Technician: ให้ทั้ง Admin(1) และ Tec(2) เข้าได้ 
+  // (เพราะ Admin ควรดูงานของช่างได้ด้วย)
+  if (pathname.startsWith("/tec")) {
+    if (!token || (role !== "1" && role !== "2")) {
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 
-  // อนุญาตให้ไปต่อ
+  // โซน Admin: ให้ Admin(1) เข้าได้คนเดียวเท่านั้น
+  if (pathname.startsWith("/admin")) {
+    if (!token || role !== "1") {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
-
-/**
- * กำหนด path ที่ middleware จะทำงาน
- */
-export const config = {
-  matcher: ["/admin/:path*"],
-};

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export default function HomePage() {
   const [keyword, setKeyword] = useState("");
@@ -16,6 +18,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       {/* Hero Section */}
+      {/* navbar */}
+      <Navbar />
       <main className="max-w-7xl mx-auto px-4 pt-12 pb-24">
         <div className="bg-white rounded-[2.5rem] p-10 md:p-24 text-center border border-slate-200 shadow-xl shadow-slate-200/50">
           <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight text-slate-900">
@@ -128,6 +132,8 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('repair_id')
+            $table->foreignId('repair_order_id')
                 ->constrained('repair_orders')
                 ->cascadeOnDelete();
             $table->string('channel'); // web, email

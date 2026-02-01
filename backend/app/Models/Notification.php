@@ -15,6 +15,6 @@ class Notification extends Model
 
     public function repairOrder()
     {
-        return $this->belongsTo(RepairOrder::class);
+        return $this->belongsTo(RepairOrder::class, 'repair_order_id');
     }
 }

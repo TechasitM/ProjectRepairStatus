@@ -11,7 +11,7 @@ class PublicTrackingController extends Controller
         // ===== PUBLIC (ลูกค้า) =====
   public function show($keyword) //ค้นหาด้วย code 
     {
-        $query = RepairOrder::with(['status', 'timelines.status', 'customer']);
+        $query = RepairOrder::with(['status', 'timelines.status', 'customer', 'notifications']);
 
         if (is_numeric($keyword)) {
             $query->where('id', $keyword);
@@ -29,7 +29,7 @@ class PublicTrackingController extends Controller
                     $q->where('phone', $phone);
                 })
                 // เพิ่ม 'timelines.status' เข้าไปตรงนี้
-                ->with(['status', 'customer', 'timelines.status']) 
+                ->with(['status', 'customer', 'timelines.status','notifications']) 
                 ->latest('created_at')
                 ->firstOrFail()
         );

@@ -9,7 +9,6 @@ class RepairOrder extends Model
     protected $fillable = [
         'repair_code',
         'customer_id',
-        'device_id',
         'user_id',
         'status_id',
         'problem_description',
@@ -20,12 +19,15 @@ class RepairOrder extends Model
     {
         return $this->belongsTo(Customer::class);
     }
-
-    public function device()
+    public function devices()
     {
-        return $this->belongsTo(Device::class);
+        return $this->belongsToMany(
+            Device::class,
+            'repair_order_device',
+            'repair_order_id',
+            'device_id'
+        );
     }
-
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -16,13 +16,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RepairStatusSeeder::class,
             UserSeeder::class,
-            CustomerSeeder::class,
-            DeviceSeeder::class,
-            RepairOrderSeeder::class,
+            CustomerSeeder::class,     
+            RepairStatusSeeder::class,  
+            DeviceSeeder::class,        
+            RepairOrderSeeder::class,   
             RepairTimelineSeeder::class,
-            NotificationSeeder::class,
+            NotificationSeeder::class,  
         ]);
     }
 }

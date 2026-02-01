@@ -14,7 +14,6 @@ class RepairOrderSeeder extends Seeder
         RepairOrder::create([
             'repair_code' => 'REP001',
             'customer_id' => 1,
-            'device_id' => 1,
             'user_id' => 1,
             'status_id' => 1, // รับเครื่อง
             'problem_description' => 'เปิดไม่ติด',
@@ -24,7 +23,6 @@ class RepairOrderSeeder extends Seeder
         RepairOrder::create([
             'repair_code' => 'REP002',
             'customer_id' => 2,
-            'device_id' => 2,
             'user_id' => 1,
             'status_id' => 2, // กำลังซ่อม
             'problem_description' => 'จอฟ้า',
