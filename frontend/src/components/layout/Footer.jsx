@@ -1,24 +1,26 @@
 import Link from "next/link";
+import { Wrench } from "lucide-react";
 
 export default function Footer() {
   return (
-   <footer
-          style={{
-            textAlign: "center",
-            padding: 10,
-            fontSize: 14,
-            color: "#6b7280",
-            borderTop: "1px solid #e5e7eb",
-          }}
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="max-w-7xl mx-auto px-6 py-10 text-center space-y-4">
+        {/* Brand */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 font-semibold text-slate-700 hover:text-blue-600 transition-colors"
         >
-          © 2026 ระบบติดตามสถานะการซ่อมคอมพิวเตอร์ออนไลน์
-        <div className="container mx-auto c">
-          <Link href="/">
-        <b>🔧 ร้านซ่อมคอมพิวเตอร์</b>
+          <Wrench className="w-4 h-4" />
+          ร้านซ่อมคอมพิวเตอร์
         </Link>
-        </div>      
+
+        {/* Copyright */}
+        <p className="text-sm text-slate-400 leading-relaxed">
+          © 2026 ระบบติดตามสถานะการซ่อมคอมพิวเตอร์ออนไลน์  
+          <br />
+          All rights reserved.
+        </p>
+      </div>
     </footer>
   );
 }
-   
-   

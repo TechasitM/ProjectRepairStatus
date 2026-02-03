@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class RepairStatusUpdated extends Mailable
 {
@@ -18,12 +19,14 @@ class RepairStatusUpdated extends Mailable
     public $repairOrder;
     public $statusName;
     public $note;
+    public $sent_datetime;
 
     public function __construct(RepairOrder $repairOrder, string $statusName, ?string $note = null)
     {
         $this->repairOrder = $repairOrder;
         $this->statusName = $statusName;
         $this->note = $note;
+        $this->sent_datetime = Carbon::now();
     }
 
     /**

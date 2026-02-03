@@ -16,7 +16,7 @@ class DeviceController extends Controller
     }
 
     public function show($id) {
-        return Device::with('customer')->findOrFail($id);
+        return Device::with(['repairOrders.status', 'customer'])->findOrFail($id);
     }
 
     public function update(Request $request, $id) {
@@ -29,6 +29,7 @@ class DeviceController extends Controller
         Device::destroy($id);
         return response()->json(['message' => 'deleted']);
     }
+    
     public function dropdownCustomerDevice($customer_id) {
         $devices=Device::where("customer_id",$customer_id)->get();
             return response()->json([

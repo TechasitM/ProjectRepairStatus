@@ -3,11 +3,49 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
+import {
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Mail,
+  Bell,
+  ArrowLeft,
+} from "lucide-react";
+
+/* ===============================
+   Status Color Helper
+================================ */
+function getStatusStyle(status) {
+  switch (status) {
+    case "รอซ่อม":
+      return {
+        badge: "bg-yellow-50 text-yellow-700",
+        dot: "bg-yellow-500 ring-yellow-100",
+      };
+
+    case "กำลังซ่อม":
+      return {
+        badge: "bg-blue-50 text-blue-700",
+        dot: "bg-blue-500 ring-blue-100",
+      };
+
+    case "เสร็จแล้ว":
+      return {
+        badge: "bg-green-50 text-green-700",
+        dot: "bg-green-500 ring-green-100",
+      };
+
+    default:
+      return {
+        badge: "bg-gray-100 text-gray-600",
+        dot: "bg-gray-400 ring-gray-100",
+      };
+  }
+}
 
 export default function TrackRepairPage() {
-  const params = useParams();
+  const { code } = useParams();
   const router = useRouter();
-  const keyword = params.code;
 
   const [repair, setRepair] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,176 +54,209 @@ export default function TrackRepairPage() {
   const fetchRepairData = useCallback(async () => {
     try {
       setLoading(true);
-      const isPhone = /^[0-9]{9,10}$/.test(keyword);
-      const url = isPhone ? `/repairs/phone/${keyword}` : `/repairs/${keyword}`;
-      const response = await api.get(url);
-      setRepair(response.data);
-    } catch (err) {
+      const isPhone = /^[0-9]{9,10}$/.test(code);
+      const url = isPhone ? `/repairs/phone/${code}` : `/repairs/${code}`;
+      const res = await api.get(url);
+      setRepair(res.data);
+    } catch {
       setError("ไม่พบข้อมูลงานซ่อมในระบบ กรุณาตรวจสอบรหัสอีกครั้ง");
     } finally {
       setLoading(false);
     }
-  }, [keyword]);
+  }, [code]);
 
   useEffect(() => {
-    if (keyword) fetchRepairData();
-  }, [keyword, fetchRepairData]);
+    if (code) fetchRepairData();
+  }, [code, fetchRepairData]);
 
+  /* ---------- Loading ---------- */
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="h-10 w-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
 
+  /* ---------- Error ---------- */
   if (error)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="bg-red-50 p-6 rounded-lg text-center">
-          <h2 className="text-red-600 text-xl font-bold mb-4">{error}</h2>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-gray-800 text-white px-6 py-2 rounded-md hover:bg-gray-700"
-          >
-            กลับหน้าหลัก
-          </button>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <p className="text-red-600 mb-6">{error}</p>
+        <button
+          onClick={() => router.push("/")}
+          className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+        >
+          กลับหน้าหลัก
+        </button>
       </div>
     );
 
+  const statusStyle = getStatusStyle(repair.status?.status_name);
+
+  /* ---------- UI ---------- */
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header Card */}
-        <div className="bg-white rounded-t-xl shadow-sm p-6 border-b border-gray-100">
-          <div className="flex justify-between items-start">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10 px-4">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Back */}
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          ค้นหารหัสอื่น
+        </button>
+
+        {/* Header */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">สถานะงานซ่อม</h1>
-              <p className="text-gray-500 text-sm">
-                รหัสงาน: {repair?.repair_code}
+              <h1 className="text-2xl font-semibold text-gray-800">
+                ติดตามสถานะงานซ่อม
+              </h1>
+              <p className="text-sm text-gray-400 mt-1">
+                รหัสงาน:{" "}
+                <span className="text-gray-600">
+                  {repair.repair_code}
+                </span>
               </p>
             </div>
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-              {repair?.status?.status_name}
+
+            <span
+              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${statusStyle.badge}`}
+            >
+              <Clock className="w-4 h-4" />
+              {repair.status?.status_name}
             </span>
           </div>
         </div>
-        {/* Notification Section */}
-        <div className="bg-white mt-4 rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">
-            🔔 การแจ้งเตือน
-          </h2>
 
-          {repair?.notifications?.length > 0 ? (
-            <ul className="space-y-3">
-              {repair.notifications.map((n) => (
-                <li
-                  key={n.id}
-                  className={`flex justify-between items-start p-4 rounded-lg border
-            ${
-              n.notification_status === "sent"
-                ? "bg-green-50 border-green-100"
-                : "bg-red-50 border-red-100"
-            }`}
-                >
-                  <div>
-                    <p className="font-semibold text-gray-700">
-                      {n.channel === "email" ? "📧 Email" : n.channel}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {n.sent_datetime
-                        ? new Date(n.sent_datetime).toLocaleString("th-TH")
-                        : "-"}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full
-              ${
-                n.notification_status === "sent"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-                  >
-                    {n.notification_status === "sent" ? "ส่งแล้ว" : "ล้มเหลว"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-400 text-center py-4">
-              🔕 ยังไม่มีการแจ้งเตือน
-            </p>
-          )}
-
-          {/* Info Detail */}
-          <div className="bg-white p-6 shadow-sm space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
-                  อาการเสีย
-                </label>
-                <p className="text-gray-700">{repair?.problem_description}</p>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
-                  วันที่รับเครื่อง
-                </label>
-                <p className="text-gray-700">
-                  {repair?.receive_date
-                    ? new Date(repair.receive_date).toLocaleDateString("th-TH")
-                    : "-"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Timeline Section */}
-        <div className="bg-white mt-4 rounded-b-xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-6">
-            ประวัติการดำเนินการ
-          </h2>
-          <div className="relative">
-            {repair?.timelines?.length > 0 ? (
-              repair.timelines.map((item, index) => (
-                <div key={item.id} className="relative pl-8 pb-8 last:pb-0">
-                  {/* Line */}
-                  {index !== repair.timelines.length - 1 && (
-                    <div className="absolute left-[11px] top-7 w-[2px] h-full bg-blue-100"></div>
-                  )}
-                  {/* Dot */}
-                  <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white bg-blue-500 shadow-sm"></div>
-
-                  <div>
-                    <h3 className="font-bold text-gray-800">
-                      {item.status?.status_name}
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {new Date(item.update_datetime).toLocaleString("th-TH")}
-                    </p>
-                    {item.note && (
-                      <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <strong>หมายเหตุ:</strong> {item.note}
-                      </div>
-                    )}
-                  </div>
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Info */}
+            <Card title="ข้อมูลงานซ่อม">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div>
+                  <p className="text-gray-400 mb-1">อาการเสีย</p>
+                  <p className="text-gray-700">
+                    {repair.problem_description || "-"}
+                  </p>
                 </div>
-              ))
+                <div>
+                  <p className="text-gray-400 mb-1">วันที่รับเครื่อง</p>
+                  <p className="text-gray-700">
+                    {repair.receive_date
+                      ? new Date(repair.receive_date).toLocaleDateString("th-TH")
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Notifications */}
+            <Card title="การแจ้งเตือน">
+              {repair.notifications?.length ? (
+                <ul className="space-y-3">
+                  {repair.notifications.map((n) => {
+                    const isSent = n.notification_status === "sent";
+                    return (
+                      <li
+                        key={n.id}
+                        className="flex justify-between items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50"
+                      >
+                        <div>
+                          <p className="flex items-center gap-2 text-gray-700 text-sm">
+                            <Mail className="w-4 h-4" />
+                            {n.channel === "email" ? "อีเมล" : n.channel}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {n.sent_datetime
+                              ? new Date(n.sent_datetime).toLocaleString("th-TH")
+                              : "-"}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${
+                            isSent
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-600"
+                          }`}
+                        >
+                          {isSent ? (
+                            <CheckCircle2 className="w-3 h-3" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3" />
+                          )}
+                          {isSent ? "ส่งแล้ว" : "ล้มเหลว"}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-gray-400 text-sm">ยังไม่มีการแจ้งเตือน</p>
+              )}
+            </Card>
+          </div>
+
+          {/* Right */}
+          <Card title="ประวัติการดำเนินการ">
+            {repair.timelines?.length ? (
+              <div className="space-y-6">
+                {repair.timelines.map((t, index) => {
+                  const timelineStyle = getStatusStyle(
+                    t.status?.status_name
+                  );
+
+                  return (
+                    <div key={t.id} className="relative pl-6">
+                      {index !== repair.timelines.length - 1 && (
+                        <div className="absolute left-[7px] top-6 h-full w-px bg-gray-200" />
+                      )}
+
+                      <div
+                        className={`absolute left-0 top-1 w-4 h-4 rounded-full ring-4 ${timelineStyle.dot}`}
+                      />
+
+                      <p className="text-sm font-medium text-gray-800">
+                        {t.status?.status_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(t.update_datetime).toLocaleString("th-TH")}
+                      </p>
+
+                      {t.note && (
+                        <p className="text-xs text-gray-600 mt-2 bg-gray-50 p-3 rounded-lg border">
+                          <strong>หมายเหตุ:</strong> {t.note}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <p className="text-gray-400 text-center py-4">
-                ยังไม่มีประวัติสถานะ
+              <p className="text-gray-400 text-sm">
+                ยังไม่มีประวัติการดำเนินการ
               </p>
             )}
-          </div>
+          </Card>
         </div>
-
-        <button
-          onClick={() => router.push("/")}
-          className="mt-8 w-full text-center text-gray-500 hover:text-gray-800 text-sm font-medium transition-colors"
-        >
-          ← ค้นหารหัสอื่น
-        </button>
       </div>
+    </div>
+  );
+}
+
+/* ---------- Card ---------- */
+function Card({ title, children }) {
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+      <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <Bell className="w-4 h-4 text-blue-500" />
+        {title}
+      </h3>
+      {children}
     </div>
   );
 }

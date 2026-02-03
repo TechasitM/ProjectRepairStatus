@@ -1,45 +1,69 @@
-import Link from 'next/link';
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { LogIn, LogOut, Wrench, LayoutDashboard } from "lucide-react";
+import LoginModal from "@/components/ui/LoginModal";
 
 export default function Navbar() {
-  // สมมติค่าตัวแปร (ในงานจริงค่านี้จะมาจาก useContext, Redux หรือ Auth Library)
-  const isLoggedIn = false; 
+  // mock สถานะ login (ภายหลังค่อยต่อ auth จริง)
+  const isLoggedIn = false;
+
+  // state สำหรับ modal
+  const [openLogin, setOpenLogin] = useState(false);
 
   return (
-    <nav
-      style={{
-        padding: "12px 20px",
-        borderBottom: "1px solid #e5e7eb",
-        background: "#f9fafb",
-        display: "flex",
-        justifyContent: "space-between", // จัดให้โลโก้อยู่ซ้าย เมนูอยู่ขวา
-        alignItems: "center"
-      }}
-    >
-      <Link href="/">
-        <b>🔧 ร้านซ่อมคอมพิวเตอร์</b>
-      </Link>
+    <>
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-black text-lg text-blue-600"
+          >
+            <Wrench className="w-5 h-5" />
+            ร้านซ่อมคอมพิวเตอร์
+          </Link>
 
-      <div style={{ display: "flex", gap: "15px" }}>
-        {/* เมนูที่ทุกคนเห็น */}
-        <Link href="/services">บริการของเรา</Link>
+          {/* Right Menu */}
+          <div className="flex items-center gap-6">
+            {!isLoggedIn ? (
+              // ✅ ปุ่มเปิด modal
+              <button
+                onClick={() => setOpenLogin(true)}
+                className="flex items-center gap-2 font-bold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                เข้าสู่ระบบ
+              </button>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 font-medium text-slate-700 hover:text-blue-600 transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  แจ้งซ่อม
+                </Link>
 
-        {/* ตรวจสอบสถานะการ Login */}
-        {!isLoggedIn ? (
-          // ถ้ายังไม่ Login ให้แสดงปุ่มนี้
-          <Link href="/login" style={{ color: "blue" }}>เข้าสู่ระบบ</Link>
-        ) : (
-          // ถ้า Login แล้ว ให้แสดงเมนูสำหรับสมาชิก
-          <>
-            <Link href="/dashboard">แจ้งซ่อม</Link>
-            <button 
-              onClick={() => alert('Logout logic here')}
-              style={{ color: "red", border: "none", background: "none", cursor: "pointer" }}
-            >
-              ออกจากระบบ
-            </button>
-          </>
-        )}
-      </div>
-    </nav>
+                <button
+                  onClick={() => alert("Logout logic here")}
+                  className="flex items-center gap-2 text-red-600 font-medium hover:text-red-700 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  ออกจากระบบ
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ✅ เรียกใช้ Login Modal */}
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+      />
+    </>
   );
 }

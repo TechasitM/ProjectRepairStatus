@@ -64,7 +64,7 @@ export default function AdminLayout({ children }) {
                 className={`block px-4 py-2.5 rounded-lg font-medium transition-colors ${
                   pathname === item.href ? activeClass : inactiveClass
                 }`}
-                onClick={() => setIsOpen(false)} // ปิดเมนูเมื่อคลิก (บนมือถือ)
+                onClick={() => setIsOpen(false)}
               >
                 {item.name}
               </Link>

@@ -16,7 +16,19 @@ class CustomerController extends Controller
     }
 
     public function show($id) {
-        return Customer::findOrFail($id);
+        $customer = Customer::with([
+            'devices', 
+            'repairOrders' => function($query) {
+                $query->with(['status', 'devices']) 
+                    ->orderBy('receive_date', 'desc')
+                    ->limit(5);
+            }
+        ])->findOrFail($id);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $customer
+        ]);
     }
 
     public function update(Request $request, $id) {

@@ -124,13 +124,6 @@ export default function CustomerDetailPage() {
                     </span>
                   </div>
                 </div>
-
-                <Link
-                  href={`/admin/customers/edit/${customer.id}`}
-                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all text-sm font-bold border border-transparent hover:shadow-md"
-                >
-                  <Edit size={16} /> แก้ไขข้อมูลติดต่อ
-                </Link>
               </div>
             </div>
           </div>
@@ -199,7 +192,7 @@ export default function CustomerDetailPage() {
 
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                       <Link
-                        href={`/admin/devices/view/${device.id}`}
+                        href={`/tec/devices/view/${device.id}`}
                         className="flex-1 sm:flex-none text-center px-4 py-2 text-sm text-gray-500 hover:text-blue-600 font-bold border border-gray-100 hover:border-blue-100 rounded-lg transition-all"
                       >
                         รายละเอียด

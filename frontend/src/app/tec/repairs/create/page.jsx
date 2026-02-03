@@ -1,52 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-
-/* helper รองรับ JSON หลายแบบ */
-const extractArray = (res) => {
-  if (Array.isArray(res)) return res;
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.customers)) return res.customers;
-  if (Array.isArray(res?.statuses)) return res.statuses;
-  if (Array.isArray(res?.devices)) return res.devices;
-  return [];
-};
+import Swal from "sweetalert2";
+import {
+  User,
+  Search,
+  Monitor,
+  Laptop,
+  Calendar,
+  FileText,
+  CheckCircle,
+  ChevronDown,
+  AlertCircle,
+  ArrowLeft,
+} from "lucide-react";
 
 const API_BASE = "http://localhost:8000/api";
 
-async function fetchJson(url, options = {}) {
-  const res = await fetch(url, options);
-
-  let json = null;
-  const contentType = res.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    json = await res.json();
-  } else {
-    const text = await res.text();
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = { message: text };
-    }
-  }
-
-  if (!res.ok) {
-    const msg =
-      json?.message ||
-      json?.error ||
-      `Request failed (${res.status} ${res.statusText})`;
-    throw new Error(msg);
-  }
-
-  return json;
-}
-
-const customerLabel = (c) => `${c?.customer_name ?? ""} (${c?.phone ?? "-"})`;
-
 export default function CreateRepairPage() {
   const router = useRouter();
-
   const [loading, setLoading] = useState(false);
   const [loadingInit, setLoadingInit] = useState(true);
   const [loadingDevices, setLoadingDevices] = useState(false);
@@ -56,458 +29,385 @@ export default function CreateRepairPage() {
   const [statuses, setStatuses] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // ✅ ค้นหาลูกค้า (custom dropdown)
   const [customerQuery, setCustomerQuery] = useState("");
   const [isCustomerOpen, setIsCustomerOpen] = useState(false);
-
-  const [formData, setFormData] = useState(() => ({
+  const now = new Date();
+  const localDateTime = new Date(
+    now.getTime() - now.getTimezoneOffset() * 60000,
+  )
+    .toISOString()
+    .slice(0, 16);
+    
+  const [formData, setFormData] = useState({
     repair_code: `RP-${Date.now()}`,
     customer_id: "",
     device_id: [],
     user_id: "",
     status_id: "",
     problem_description: "",
-    receive_date: new Date().toISOString().split("T")[0],
-  }));
-  console.log(formData);
+    receive_date: localDateTime,
+  });
 
-  const token = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("token") || "";
-  }, []);
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : "";
+  const authHeaders = useMemo(
+    () => ({
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    }),
+    [token],
+  );
 
-  const authHeaders = useMemo(() => {
-    const h = { Accept: "application/json" };
-    if (token) h.Authorization = `Bearer ${token}`;
-    return h;
-  }, [token]);
-
-  // ===== init โหลด master data =====
   useEffect(() => {
-    let ignore = false;
-
     const initData = async () => {
       try {
-        setLoadingInit(true);
-
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
         const [custJson, statJson, userJson] = await Promise.all([
-          fetchJson(`${API_BASE}/customers`, { headers: authHeaders }),
-          fetchJson(`${API_BASE}/statuses`, { headers: authHeaders }),
-          fetchJson(`${API_BASE}/user-profile`, { headers: authHeaders }),
+          fetch(`${API_BASE}/customers`, { headers: authHeaders }).then((r) =>
+            r.json(),
+          ),
+          fetch(`${API_BASE}/statuses`, { headers: authHeaders }).then((r) =>
+            r.json(),
+          ),
+          fetch(`${API_BASE}/user-profile`, { headers: authHeaders }).then(
+            (r) => r.json(),
+          ),
         ]);
-
-        if (ignore) return;
-
-        const custArr = extractArray(custJson);
-        const statArr = extractArray(statJson);
-
-        setCustomers(
-          [...custArr].sort((a, b) =>
-            String(a.customer_name || "").localeCompare(
-              String(b.customer_name || ""),
-            ),
-          ),
-        );
-
-        setStatuses(
-          [...statArr].sort((a, b) =>
-            String(a.status_name || "").localeCompare(
-              String(b.status_name || ""),
-            ),
-          ),
-        );
-
-        const user = userJson?.data || userJson;
+        setCustomers(custJson.data || custJson);
+        setStatuses(statJson.data || statJson);
+        const user = userJson.data || userJson;
         setCurrentUser(user);
         setFormData((prev) => ({ ...prev, user_id: user?.id || "" }));
       } catch (err) {
-        console.error("Load initial data failed:", err);
-        alert(err?.message || "โหลดข้อมูลเริ่มต้นไม่สำเร็จ");
+        console.error("Initial load failed", err);
       } finally {
-        if (!ignore) setLoadingInit(false);
+        setLoadingInit(false);
       }
     };
-
     initData();
-    return () => {
-      ignore = true;
-    };
-  }, [authHeaders, router, token]);
-  console.log(filteredDevices)
-  // ===== โหลดอุปกรณ์ตาม customer_id (นี่คือหัวใจ) =====
-  const loadDevicesByCustomer = useCallback(
-    async (customerId) => {
-      setFilteredDevices([]);
-      if (!customerId) return;
+  }, [authHeaders]);
 
-      try {
-        setLoadingDevices(true);
-        
-        const  json = await fetchJson(
-          `${API_BASE}/dropdown-customer-device/${customerId}`,
-          { headers: authHeaders },
-        );
-        console.log(json)
-        const devicesArr = extractArray(json);
-        const sorted = [...devicesArr].sort((a, b) => {
-          const aa = `${a.brand || ""} ${a.model || ""} ${a.serial_number || ""}`;
-          const bb = `${b.brand || ""} ${b.model || ""} ${b.serial_number || ""}`;
-          return aa.localeCompare(bb);
+  const loadDevices = async (cid) => {
+    setLoadingDevices(true);
+    try {
+      const res = await fetch(`${API_BASE}/dropdown-customer-device/${cid}`, {
+        headers: authHeaders,
+      });
+      const json = await res.json();
+      setFilteredDevices(json.data || json);
+    } finally {
+      setLoadingDevices(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.customer_id)
+      return Swal.fire("ข้อมูลไม่ครบ", "กรุณาเลือกชื่อลูกค้า", "warning");
+    if (formData.device_id.length === 0)
+      return Swal.fire(
+        "ลืมเลือกอุปกรณ์",
+        "กรุณาเลือกอุปกรณ์คอมพิวเตอร์อย่างน้อย 1 ชิ้น",
+        "warning",
+      );
+    if (!formData.status_id)
+      return Swal.fire(
+        "ระบุสถานะ",
+        "กรุณาเลือกสถานะเริ่มต้นงานซ่อม",
+        "warning",
+      );
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/repairs`, {
+        method: "POST",
+        headers: { ...authHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        await Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "สร้างใบสั่งซ่อมเรียบร้อย",
+          timer: 2000,
+          showConfirmButton: false,
         });
-
-        setFilteredDevices(sorted);
-
-        // ถ้ามีอุปกรณ์เดียว เลือกให้อัตโนมัติ
-        if (sorted.length === 1) {
-          setFormData((prev) => ({ ...prev, device_id: [sorted[0].id] }));
-        }
-      } catch (err) {
-        console.error("Load devices failed:", err);
-        alert(err?.message || "โหลดรายการอุปกรณ์ไม่สำเร็จ");
-      } finally {
-        setLoadingDevices(false);
-      }
-    },
-    [authHeaders],
-  );
-
-  // ✅ เลือกลูกค้าจริง ๆ จากรายการ (กดคลิก/เลือก)
-  const selectCustomer = useCallback(
-    async (customer) => {
-      const customerId = String(customer.id);
-
-      // set customer_id แน่นอน และ reset device ก่อน
-      setFormData((prev) => ({
-        ...prev,
-        customer_id: customerId,
-        device_id: "",
-      }));
-
-      // เติมชื่อในช่องค้นหาให้เป็นชื่อจริง
-      setCustomerQuery(customerLabel(customer));
-      setIsCustomerOpen(false);
-
-      // โหลดอุปกรณ์ของลูกค้านี้เท่านั้น
-      await loadDevicesByCustomer(customerId);
-    },
-    [loadDevicesByCustomer],
-  );
-
-  // ✅ ฟิลเตอร์ลูกค้าตามคำค้น
-  const filteredCustomerList = useMemo(() => {
-    const q = (customerQuery || "").trim().toLowerCase();
-    if (!q) return customers.slice(0, 8); // โชว์ 8 คนแรก
-    return customers
-      .filter((c) => {
-        const text = `${c.customer_name || ""} ${c.phone || ""}`.toLowerCase();
-        return text.includes(q);
-      })
-      .slice(0, 12);
-  }, [customerQuery, customers]);
-
-  // ===== submit =====
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-
-      if (!formData.customer_id || !formData.device_id || !formData.status_id) {
-        alert("กรุณากรอกข้อมูล ลูกค้า, อุปกรณ์ และสถานะ ให้ครบถ้วน");
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        if (!token) {
-          alert("ไม่พบ token กรุณาเข้าสู่ระบบใหม่");
-          router.push("/login");
-          return;
-        }
-
-        await fetchJson(`${API_BASE}/repairs`, {
-          method: "POST",
-          headers: {
-            ...authHeaders,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-
         router.push("/tec/repairs");
-      } catch (err) {
-        console.error("Create repair failed:", err);
-        alert(err?.message || "บันทึกข้อมูลไม่สำเร็จ");
-      } finally {
-        setLoading(false);
       }
-    },
-    [authHeaders, formData, router, token],
-  );
+    } catch (err) {
+      Swal.fire("ผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // ===== UI =====
+  if (loadingInit)
+    return (
+      <div className="p-10 text-center animate-pulse font-bold text-gray-400">
+        กำลังเตรียมหน้าออกใบสั่งซ่อม...
+      </div>
+    );
+
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-gray-50 min-h-screen">
-      <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-        <div className="bg-blue-600 p-6">
-          <h1 className="text-2xl font-bold text-white">ออกใบสั่งซ่อมใหม่</h1>
-          <p className="text-blue-100 text-sm">
-            สร้างรายการบันทึกงานซ่อมเข้าระบบ
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={() => router.back()}
+          className="p-3 bg-white border rounded-2xl hover:text-blue-600 transition-all shadow-sm"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 leading-tight">
+            สร้างใบรับซ่อมใหม่
+          </h1>
+          <p className="text-sm text-gray-500 font-medium">
+            ระบุชื่อลูกค้าและอาการเสียเพื่อเปิดงานซ่อม
           </p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          {loadingInit && (
-            <div className="p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
-              กำลังโหลดข้อมูลเริ่มต้น...
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ข้อมูลงานซ่อม */}
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
+        {/* Left: Customer & Devices */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-gray-50 shadow-sm space-y-6">
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-700 border-l-4 border-blue-500 pl-3">
-                ข้อมูลงานซ่อม
-              </h2>
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <User size={14} /> ข้อมูลลูกค้าและอุปกรณ์
+              </label>
 
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  Repair Code
-                </label>
-                <input
-                  value={formData.repair_code}
-                  readOnly
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-blue-600 font-mono font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  วันที่รับเครื่อง
-                </label>
-                <input
-                  type="date"
-                  value={formData.receive_date}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      receive_date: e.target.value,
-                    }))
-                  }
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* ลูกค้าและอุปกรณ์ */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-700 border-l-4 border-blue-500 pl-3">
-                ลูกค้าและอุปกรณ์
-              </h2>
-
-              {/* ✅ ลูกค้า: searchable dropdown (custom) */}
               <div className="relative">
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  ลูกค้า (ค้นหาได้)
-                </label>
-
-                <div className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <input
-                      value={customerQuery}
-                      onChange={(e) => {
-                        setCustomerQuery(e.target.value);
-                        setIsCustomerOpen(true);
-
-                        // ถ้ากำลังพิมพ์ค้นหา ให้ reset customer/device ก่อน
-                        setFormData((prev) => ({
-                          ...prev,
-                          customer_id: "",
-                          device_id: "",
-                        }));
-                        setFilteredDevices([]);
-                      }}
-                      onFocus={() => setIsCustomerOpen(true)}
-                      placeholder="พิมพ์ชื่อหรือเบอร์ เช่น นิด / 089..."
-                      className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                      required
-                    />
-
-                    {isCustomerOpen && (
-                      <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-auto">
-                        {filteredCustomerList.length === 0 ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            ไม่พบลูกค้า
-                          </div>
-                        ) : (
-                          filteredCustomerList.map((c) => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onMouseDown={(e) => e.preventDefault()} // กัน blur ก่อนคลิก
-                              onClick={() => selectCustomer(c)}
-                              className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm"
-                            >
-                              <div className="font-medium text-gray-800">
-                                {c.customer_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {c.phone}
-                              </div>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push("/admin/customers/create")}
-                    className="bg-gray-100 p-2.5 rounded-lg hover:bg-gray-200 transition-colors"
-                    title="เพิ่มลูกค้า"
-                  >
-                    ➕
-                  </button>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Search size={18} />
                 </div>
-              </div>
+                <input
+                  type="text"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 ring-blue-500 outline-none transition-all font-bold"
+                  placeholder="ค้นหาชื่อลูกค้า หรือ เบอร์โทรศัพท์..."
+                  value={customerQuery}
+                  onChange={(e) => {
+                    setCustomerQuery(e.target.value);
+                    setIsCustomerOpen(true);
+                  }}
+                  onFocus={() => setIsCustomerOpen(true)}
+                />
 
-              {/* ✅ อุปกรณ์: แสดงเฉพาะของลูกค้าที่เลือกเท่านั้น */}
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  อุปกรณ์ (ของลูกค้าที่เลือกเท่านั้น)
-                </label>
-                {filteredDevices.map((device) => (
-                  <div key={device.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.device_id.includes(device.id)}
-                      className="checkbox"
-                      value={String(device.id)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-
-                        setFormData((prev) => ({
-                          ...prev,
-                          device_id: checked
-                            ? [...prev.device_id, device.id]
-                            : prev?.device_id?.filter((id) => id !== device.id),
-                        }));
-                      }}
-                    />
-                    <span>
-                      {device.brand} {device.model} [SN: {device.serial_number}]
-                    </span>
+                {isCustomerOpen && customerQuery && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-auto overflow-x-hidden">
+                    {customers
+                      .filter(
+                        (c) =>
+                          c.customer_name
+                            .toLowerCase()
+                            .includes(customerQuery.toLowerCase()) ||
+                          c.phone.includes(customerQuery),
+                      )
+                      .map((c) => (
+                        <div
+                          key={c.id}
+                          className="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 transition-colors flex justify-between items-center"
+                          onClick={() => {
+                            setFormData((p) => ({
+                              ...p,
+                              customer_id: c.id,
+                              device_id: [],
+                            }));
+                            setCustomerQuery(c.customer_name);
+                            setIsCustomerOpen(false);
+                            loadDevices(c.id);
+                          }}
+                        >
+                          <div>
+                            <p className="font-black text-gray-800">
+                              {c.customer_name}
+                            </p>
+                            <p className="text-xs text-gray-400 font-bold">
+                              {c.phone}
+                            </p>
+                          </div>
+                          <ChevronDown size={14} className="text-gray-300" />
+                        </div>
+                      ))}
                   </div>
-                ))}
+                )}
+              </div>
+            </div>
 
+            <div
+              className={`p-6 rounded-[2rem] transition-all ${formData.customer_id ? "bg-blue-50 border border-blue-100" : "bg-gray-50 text-gray-300 border border-transparent opacity-50"}`}
+            >
+              <p className="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-blue-800">
+                เลือกอุปกรณ์ที่ส่งซ่อม ({formData.device_id.length})
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {loadingDevices ? (
+                  <div className="col-span-2 py-6 text-center text-xs text-blue-400 font-bold">
+                    กำลังโหลดอุปกรณ์...
+                  </div>
+                ) : (
+                  filteredDevices.map((device) => (
+                    <label
+                      key={device.id}
+                      className={`flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.device_id.includes(device.id) ? "bg-white border-blue-500 shadow-md ring-2 ring-blue-100" : "bg-white/50 border-transparent hover:border-blue-200"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={formData.device_id.includes(device.id)}
+                        onChange={(e) => {
+                          const ids = e.target.checked
+                            ? [...formData.device_id, device.id]
+                            : formData.device_id.filter(
+                                (id) => id !== device.id,
+                              );
+                          setFormData((p) => ({ ...p, device_id: ids }));
+                        }}
+                      />
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">
+                          {device.device_type === "desktop" ? "PC" : "Laptop"}
+                        </p>
+                        <p className="text-sm font-black text-gray-800 truncate">
+                          {device.brand} {device.model}
+                        </p>
+                        <p className="text-[10px] font-mono font-bold text-blue-500 tracking-tighter">
+                          S/N: {device.serial_number}
+                        </p>
+                      </div>
+                    </label>
+                  ))
+                )}
                 {formData.customer_id &&
-                  !loadingDevices &&
-                  filteredDevices.length === 0 && (
-                    <p className="text-xs text-orange-500 mt-1">
-                      * ลูกค้ารายนี้ยังไม่มีข้อมูลอุปกรณ์ในระบบ
-                    </p>
+                  filteredDevices.length === 0 &&
+                  !loadingDevices && (
+                    <div className="col-span-2 py-4 text-center">
+                      <p className="text-xs text-gray-400 italic font-medium">
+                        ลูกค้าท่านนี้ยังไม่มีอุปกรณ์ในระบบ
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => router.push("/tec/devices/create")}
+                        className="mt-2 text-xs font-black text-blue-600 underline"
+                      >
+                        + เพิ่มเครื่องใหม่
+                      </button>
+                    </div>
                   )}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* รายละเอียดอาการเสีย */}
-            <div className="col-span-1 md:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold text-gray-700 border-l-4 border-blue-500 pl-3">
-                รายละเอียดอาการเสีย
-              </h2>
+        {/* Right: Order Summary & Status */}
+        <div className="space-y-6">
+          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-xl space-y-6">
+            <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+              <FileText size={14} /> Repair Order Details
+            </h3>
 
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  สถานะเริ่มต้น
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                    Repair Code
+                  </label>
+                  <div className="w-full p-3 bg-gray-800 border-none rounded-xl font-mono text-xs text-blue-400 font-black">
+                    {formData.repair_code}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                    Receive Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.receive_date}
+                    className="w-full p-3 bg-gray-800 border-none text-white rounded-xl text-xs font-bold outline-none ring-1 ring-gray-700"
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        receive_date: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                  Initial Status
                 </label>
                 <select
+                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-bold outline-none ring-1 ring-gray-700"
                   value={formData.status_id}
-                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      status_id: e.target.value,
-                    }))
+                    setFormData((p) => ({ ...p, status_id: e.target.value }))
                   }
-                  required
                 >
-                  <option value="">-- เลือกสถานะ --</option>
+                  <option value="">เลือกสถานะเริ่มต้น...</option>
                   {statuses.map((s) => (
-                    <option key={s.id} value={String(s.id)}>
+                    <option key={s.id} value={s.id}>
                       {s.status_name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-1 block">
-                  ปัญหาที่แจ้ง/อาการเสีย
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                  Description (อาการเสีย)
                 </label>
                 <textarea
                   rows={4}
-                  value={formData.problem_description}
-                  placeholder="ระบุอาการเสียโดยละเอียด เช่น เปิดไม่ติด, จอแตก, ลืมรหัสผ่าน..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-medium outline-none ring-1 ring-gray-700"
+                  placeholder="แจ้งอาการเสียโดยละเอียด..."
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
+                    setFormData((p) => ({
+                      ...p,
                       problem_description: e.target.value,
                     }))
                   }
-                  required
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-100 pt-6 gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              ช่างผู้รับงาน:{" "}
-              <span className="font-bold text-gray-700">
-                {currentUser?.name || "กำลังโหลด..."}
-              </span>
-            </div>
-
-            <div className="flex gap-3 w-full md:w-auto">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex-1 md:flex-none px-6 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-all font-medium"
-              >
-                ยกเลิก
-              </button>
 
               <button
                 type="submit"
-                disabled={loading || loadingInit || loadingDevices}
-                className={`flex-1 md:flex-none px-10 py-2.5 rounded-lg text-white font-bold transition-all shadow-lg ${
-                  loading || loadingInit || loadingDevices
-                    ? "bg-gray-400"
-                    : "bg-blue-600 hover:bg-blue-700 active:scale-95"
-                }`}
+                disabled={loading}
+                className={`w-full py-5 rounded-2xl text-white font-black text-sm shadow-2xl shadow-blue-900/40 transition-all flex items-center justify-center gap-2 ${loading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 active:scale-95"}`}
               >
-                {loading ? "กำลังบันทึก..." : "ยืนยันการเพิ่มรายการ"}
+                {loading ? (
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <CheckCircle size={18} /> บันทึกใบรับซ่อม
+                  </>
+                )}
               </button>
             </div>
-          </div>
-        </form>
-      </div>
 
-      {/* ปิด dropdown เมื่ิอคลิกนอก */}
-      {isCustomerOpen && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setIsCustomerOpen(false)}
-        />
-      )}
+            <div className="pt-4 border-t border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-600/30">
+                  <User size={14} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-tighter leading-none mb-1">
+                    Created By
+                  </p>
+                  <p className="text-xs font-bold text-blue-400">
+                    {currentUser?.name ||
+                      currentUser?.username ||
+                      "System User"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

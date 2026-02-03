@@ -24,7 +24,7 @@ export default function DeviceDetailPage() {
     } catch (err) {
       console.error(err);
       Swal.fire("ไม่พบข้อมูล", "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้", "error");
-      router.push("/tec/devices");
+      router.push("/admin/devices");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function DeviceDetailPage() {
               </div>
             </div>
             <Link 
-              href={`/admin/customers/${device.customer_id}`}
+              href={`/admin/customers/view/${device.customer_id}`}
               className="inline-block text-xs text-emerald-600 font-bold hover:underline"
             >
               ดูโปรไฟล์ลูกค้า →
