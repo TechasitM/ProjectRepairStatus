@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Swal from "sweetalert2";
 import { Pie, Line } from "react-chartjs-2";
+import { Cpu,} from 'lucide-react';
 
 import {
   Chart as ChartJS,
@@ -60,12 +60,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+          <Cpu
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
+            size={24}
+          />
+        </div>
+        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
+          Loading...
+        </p>
       </div>
     );
   }
-
   // --- สรุปข้อมูลสำหรับ Card ---
   const totalRepairs = repairs.length;
   const pendingCount = repairs.filter(

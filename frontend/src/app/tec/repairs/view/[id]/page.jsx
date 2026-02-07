@@ -34,12 +34,22 @@ export default function RepairViewPage() {
     window.print(); // สั่งพิมพ์หน้าจอ (เบื้องต้น)
   };
 
-  if (isLoading) return (
-    <div className="flex flex-col h-screen items-center justify-center gap-3 text-gray-400">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-      <p className="font-bold">กำลังดึงข้อมูลใบรับซ่อม...</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+          <Cpu
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
+            size={24}
+          />
+        </div>
+        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
+          Loading...
+        </p>
+      </div>
+    );
+  }
 
   if (!repair) return <div className="p-10 text-center text-red-500 font-bold">ไม่พบข้อมูลงานซ่อม</div>;
 

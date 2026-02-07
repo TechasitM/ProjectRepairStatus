@@ -97,7 +97,7 @@
             <p><strong>เช็คข้อมูลได้ที่เว็บ:</strong></p>
 
             <a href="{{ url('http://localhost:3000/track/' . $repairOrder->repair_code) }}" class="btn">
-                🔍 คลิกดูสถานะงานซ่อม
+                คลิกดูสถานะเพิ่มเติม
             </a>
 
             <p>

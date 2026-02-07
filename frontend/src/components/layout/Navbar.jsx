@@ -6,9 +6,7 @@ import { LogIn, LogOut, Wrench, LayoutDashboard } from "lucide-react";
 import LoginModal from "@/components/ui/LoginModal";
 
 export default function Navbar() {
-  // mock สถานะ login (ภายหลังค่อยต่อ auth จริง)
   const isLoggedIn = false;
-
   // state สำหรับ modal
   const [openLogin, setOpenLogin] = useState(false);
 

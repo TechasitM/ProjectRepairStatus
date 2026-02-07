@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             DeviceSeeder::class,        
             RepairOrderSeeder::class,   
             RepairTimelineSeeder::class,
-            NotificationSeeder::class,  
         ]);
     }
 }

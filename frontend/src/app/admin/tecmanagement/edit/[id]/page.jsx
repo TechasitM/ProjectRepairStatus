@@ -11,7 +11,8 @@ import {
   Lock, 
   Save, 
   UserCog,
-  ShieldAlert
+  ShieldAlert,
+  Cpu,
 } from 'lucide-react';
 
 export default function EditTecPage() {
@@ -93,14 +94,22 @@ export default function EditTecPage() {
     }
   };
 
-  if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-gray-50/50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
-        <p className="text-gray-500 font-medium animate-pulse">กำลังโหลดข้อมูลช่าง...</p>
+if (loading) {
+    return (
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+          <Cpu
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
+            size={24}
+          />
+        </div>
+        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
+          Loading...
+        </p>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="p-6 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-500">

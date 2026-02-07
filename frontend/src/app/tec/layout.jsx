@@ -13,16 +13,16 @@ export default function AdminLayout({ children }) {
   const logout = async () => {
     await api.post("/logout");
     document.cookie = "token=; Max-Age=0; path=/";
-    router.push("/login");
+    router.push("/");
   };
 
   const menuItems = [
-    { name: "Dashboard", href: "/tec/dashboard" },
-    { name: "repairs", href: "/tec/repairs" },
-    { name: "devices", href: "/tec/devices" },
-    { name: "Customers", href: "/tec/customers" },
-    { name: "notifications", href: "/tec/notifications" },
-    { name: "statuses", href: "/tec/statuses" },
+    { name: "แดชบอร์ด", href: "/tec/dashboard" },
+    { name: "รายการงานซ่อม", href: "/tec/repairs" },
+    { name: "อุปกรณ์", href: "/tec/devices" },
+    { name: "ลูกค้า", href: "/tec/customers" },
+    { name: "แจ้งเตือน", href: "/tec/notifications" },
+    { name: "สถานะ", href: "/tec/statuses" },
   ];
 
   const activeClass = "bg-blue-500 text-white";
@@ -30,30 +30,46 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row">
-      
       {/* --- Mobile Navbar --- */}
       <div className="md:hidden bg-white border-b px-4 py-3 flex justify-between items-center">
         <span className="font-bold text-blue-500 text-xl">TEC</span>
-        <button 
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 text-slate-600 focus:outline-none"
         >
           {/* Icon Hamburger */}
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             {isOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             )}
           </svg>
         </button>
       </div>
 
       {/* --- Sidebar (Hidden on mobile unless toggled) --- */}
-      <aside className={`
+      <aside
+        className={`
         ${isOpen ? "block" : "hidden"} 
         md:block w-full md:w-64 bg-white border-r border-slate-200 shadow-sm
-      `}>
+      `}
+      >
         <div className="flex flex-col h-full">
           <div className="hidden md:block p-6">
             <h3 className="text-2xl font-bold text-blue-500">TEC Panel</h3>
@@ -90,10 +106,9 @@ export default function AdminLayout({ children }) {
         {/* Header ส่วนบน (Optional) */}
         <header className="hidden md:flex bg-white h-16 border-b border-slate-200 items-center px-8">
           <h2 className="text-slate-700 font-semibold uppercase tracking-wider text-sm">
-            {menuItems.find(item => item.href === pathname)?.name || "System"}
+            {menuItems.find((item) => item.href === pathname)?.name || "System"}
           </h2>
         </header>
-            
         <div className="p-2 md:p-2">
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 min-h-[80vh]">
             {children}

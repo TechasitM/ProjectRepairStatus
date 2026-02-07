@@ -62,12 +62,12 @@ export default function CustomerDetailPage() {
   if (!customer) return null;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header & Navigation */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm"
+          className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-blue-600 shadow-sm"
         >
           <ArrowLeft size={20} />
         </button>
@@ -87,7 +87,8 @@ export default function CustomerDetailPage() {
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-blue-50 rounded-full opacity-50" />
 
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-tr from-blue-600 to-blue-400 text-white rounded-3xl flex items-center justify-center text-3xl font-bold mb-4 mx-auto shadow-blue-200 shadow-lg uppercase transform rotate-3">
+              {/* Removed rotate-3 and transform */}
+              <div className="w-24 h-24 bg-gradient-to-tr from-blue-600 to-blue-400 text-white rounded-3xl flex items-center justify-center text-3xl font-bold mb-4 mx-auto shadow-blue-200 shadow-lg uppercase">
                 {customer.customer_name?.charAt(0)}
               </div>
 
@@ -104,7 +105,7 @@ export default function CustomerDetailPage() {
                     เบอร์โทรศัพท์
                   </label>
                   <div className="flex items-center gap-3 text-gray-700 font-semibold">
-                    <div className="p-2 bg-green-50 text-green-600 rounded-lg group-hover:scale-110 transition-transform">
+                    <div className="p-2 bg-green-50 text-green-600 rounded-lg">
                       <Phone size={16} />
                     </div>
                     {customer.phone || "??"}
@@ -116,7 +117,7 @@ export default function CustomerDetailPage() {
                     อีเมล
                   </label>
                   <div className="flex items-center gap-3 text-gray-700 font-medium overflow-hidden">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                       <Mail size={16} />
                     </div>
                     <span className="truncate text-sm">
@@ -127,7 +128,7 @@ export default function CustomerDetailPage() {
 
                 <Link
                   href={`/admin/customers/edit/${customer.id}`}
-                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all text-sm font-bold border border-transparent hover:shadow-md"
+                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white text-sm font-bold border border-transparent"
                 >
                   <Edit size={16} /> แก้ไขข้อมูลติดต่อ
                 </Link>
@@ -137,7 +138,7 @@ export default function CustomerDetailPage() {
 
           {/* Quick Action Card */}
           <div className="bg-gradient-to-br from-gray-900 to-blue-900 p-8 rounded-3xl shadow-xl text-white relative overflow-hidden group">
-            <div className="absolute bottom-0 right-0 opacity-10 group-hover:scale-110 transition-transform">
+            <div className="absolute bottom-0 right-0 opacity-10">
               <PlusCircle size={120} />
             </div>
             <div className="relative z-10">
@@ -148,7 +149,7 @@ export default function CustomerDetailPage() {
               </p>
               <Link
                 href={`/tec/repairs/create?customer_id=${customer.id}`}
-                className="inline-flex items-center justify-center gap-2 w-full bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-blue-50 transition-all active:scale-95 shadow-lg shadow-black/20"
+                className="inline-flex items-center justify-center gap-2 w-full bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-blue-50 shadow-lg shadow-black/20"
               >
                 <PlusCircle size={18} /> สร้างใบรับซ่อม
               </Link>
@@ -176,14 +177,14 @@ export default function CustomerDetailPage() {
                 customer.devices.map((device) => (
                   <div
                     key={device.id}
-                    className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-blue-50/20 transition-colors group"
+                    className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-blue-50/20 group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-100 text-gray-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                      <div className="w-12 h-12 bg-gray-100 text-gray-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white">
                         <Laptop size={24} />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                        <p className="font-bold text-gray-800 group-hover:text-blue-600">
                           {device.brand} {device.model}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
@@ -200,13 +201,13 @@ export default function CustomerDetailPage() {
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                       <Link
                         href={`/admin/devices/view/${device.id}`}
-                        className="flex-1 sm:flex-none text-center px-4 py-2 text-sm text-gray-500 hover:text-blue-600 font-bold border border-gray-100 hover:border-blue-100 rounded-lg transition-all"
+                        className="flex-1 sm:flex-none text-center px-4 py-2 text-sm text-gray-500 hover:text-blue-600 font-bold border border-gray-100 hover:border-blue-100 rounded-lg"
                       >
                         รายละเอียด
                       </Link>
                       <Link
                         href={`/tec/repairs/create?device_id=${device.id}`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                         title="ซ่อมเครื่องนี้"
                       >
                         <History size={18} />
@@ -266,10 +267,7 @@ export default function CustomerDetailPage() {
                   {customer.repair_orders &&
                   customer.repair_orders.length > 0 ? (
                     customer.repair_orders.map((repair) => (
-                      <tr
-                        key={repair.id}
-                        className="hover:bg-gray-50/80 transition-colors group"
-                      >
+                      <tr key={repair.id} className="hover:bg-gray-50/80 group">
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {repair.receive_date
                             ? new Date(repair.receive_date).toLocaleDateString(
@@ -284,7 +282,6 @@ export default function CustomerDetailPage() {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm font-semibold text-gray-800 line-clamp-1">
-                            {/* แสดงชื่อเครื่องแรก และจำนวนเครื่องที่เหลือถ้ามีมากกว่า 1 */}
                             {repair.devices && repair.devices.length > 0
                               ? `${repair.devices[0].brand} ${repair.devices[0].model} ${repair.devices.length > 1 ? `(+${repair.devices.length - 1} เครื่อง)` : ""}`
                               : "ไม่ระบุอุปกรณ์"}
@@ -311,7 +308,7 @@ export default function CustomerDetailPage() {
                         <td className="px-6 py-4 text-right">
                           <Link
                             href={`/tec/repairs/view/${repair.id}`}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full inline-block transition-all"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full inline-block"
                           >
                             <ChevronRight size={18} />
                           </Link>

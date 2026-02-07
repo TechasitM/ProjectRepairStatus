@@ -140,12 +140,22 @@ export default function CreateRepairPage() {
     }
   };
 
-  if (loadingInit)
+  if (loading) {
     return (
-      <div className="p-10 text-center animate-pulse font-bold text-gray-400">
-        กำลังเตรียมหน้าออกใบสั่งซ่อม...
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+          <Cpu
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
+            size={24}
+          />
+        </div>
+        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
+          Loading...
+        </p>
       </div>
     );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">

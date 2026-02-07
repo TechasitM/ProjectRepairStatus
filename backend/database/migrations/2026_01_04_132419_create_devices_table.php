@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('brand');
             $table->string('model');
             $table->string('serial_number')->unique();
-            
+            $table->string('spec_detail');
+
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });

@@ -15,7 +15,8 @@ class DeviceSeeder extends Seeder
             'device_type' => 'Notebook',
             'brand' => 'ASUS',
             'model' => 'Vivobook',
-            'serial_number' => 'ASUS123456'
+            'serial_number' => 'ASUS123456',
+            'spec_detail' => 'intel 1',
         ]);
 
         Device::create([
@@ -23,7 +24,8 @@ class DeviceSeeder extends Seeder
             'device_type' => 'PC',
             'brand' => 'Intel',
             'model' => 'Core i5',
-            'serial_number' => 'PC987654'
+            'serial_number' => 'PC987654',
+            'spec_detail' => 'msi 1',
         ]);
     }
 }

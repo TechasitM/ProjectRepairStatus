@@ -17,9 +17,9 @@ export default function AdminLayout({ children }) {
   };
 
   const menuItems = [
-    { name: "Dashboard", href: "/admin/dashboard" },
-    { name: "Tech Management", href: "/admin/tecmanagement" },
-    { name: "Customers", href: "/admin/customers" },
+    { name: "แดชบอร์ด", href: "/admin/dashboard" },
+    { name: "การจัดการทีมช่าง", href: "/admin/tecmanagement" },
+    { name: "ลูกค้า", href: "/admin/customers" },
   ];
 
   const activeClass = "bg-blue-500 text-white";

@@ -22,7 +22,7 @@ export default function CreateDevicePage() {
     brand: "",
     model: "",
     serial_number: "",
-    details: "" // สำหรับระบุสเปคคร่าวๆ เช่น RAM, CPU
+    spac_detail: "" 
   });
 
   // โหลดรายชื่อลูกค้า
@@ -66,6 +66,7 @@ export default function CreateDevicePage() {
     c.customer_name.toLowerCase().includes(searchCustomer.toLowerCase()) ||
     c.phone.includes(searchCustomer)
   ).slice(0, 5);
+  
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -78,7 +79,7 @@ export default function CreateDevicePage() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-2xl font-black text-gray-900 leading-tight">Register New Computer</h1>
+          <h1 className="text-2xl font-black text-gray-900 leading-tight">เพิ่มอุปกรณ์</h1>
           <p className="text-sm text-gray-500 font-medium">เพิ่มอุปกรณ์คอมพิวเตอร์เข้าคลังประวัติ</p>
         </div>
       </div>
@@ -159,8 +160,8 @@ export default function CreateDevicePage() {
                   rows="3"
                   placeholder="เช่น CPU i7-12700H, RAM 16GB, SSD 512GB..."
                   className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 ring-blue-500 outline-none transition-all text-sm"
-                  value={formData.details}
-                  onChange={(e) => setFormData({...formData, details: e.target.value})}
+                  value={formData.spec_detail}
+                  onChange={(e) => setFormData({...formData, spec_detail: e.target.value})}
                 />
               </div>
             </div>

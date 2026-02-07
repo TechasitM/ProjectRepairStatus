@@ -12,6 +12,7 @@ class Device extends Model
         'brand',
         'model',
         'serial_number',
+        'spec_detail',
     ];
 
     public function customer()
