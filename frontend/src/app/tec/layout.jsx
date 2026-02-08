@@ -110,7 +110,7 @@ export default function AdminLayout({ children }) {
           </h2>
         </header>
         <div className="p-2 md:p-2">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 min-h-[80vh]">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 min-h-[80vh]">
             {children}
           </div>
         </div>

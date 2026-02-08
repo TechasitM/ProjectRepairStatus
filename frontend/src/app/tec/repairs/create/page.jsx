@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import api from "@/services/api";
 import {
   User,
   Search,
-  Monitor,
-  Laptop,
-  Calendar,
   FileText,
   CheckCircle,
   ChevronDown,
-  AlertCircle,
   ArrowLeft,
+  Cpu,
+  Link,
+  Plus,
 } from "lucide-react";
-
-const API_BASE = "http://localhost:8000/api";
 
 export default function CreateRepairPage() {
   const router = useRouter();
@@ -31,13 +29,7 @@ export default function CreateRepairPage() {
 
   const [customerQuery, setCustomerQuery] = useState("");
   const [isCustomerOpen, setIsCustomerOpen] = useState(false);
-  const now = new Date();
-  const localDateTime = new Date(
-    now.getTime() - now.getTimezoneOffset() * 60000,
-  )
-    .toISOString()
-    .slice(0, 16);
-    
+
   const [formData, setFormData] = useState({
     repair_code: `RP-${Date.now()}`,
     customer_id: "",
@@ -45,60 +37,53 @@ export default function CreateRepairPage() {
     user_id: "",
     status_id: "",
     problem_description: "",
-    receive_date: localDateTime,
+    estimate_price: "",
+    receive_date: new Date(
+      new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+    )
+      .toISOString()
+      .slice(0, 16),
   });
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : "";
-  const authHeaders = useMemo(
-    () => ({
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-    }),
-    [token],
-  );
-
+  // 1. ดึงข้อมูลเริ่มต้น (ใช้ api.get แทน fetch)
   useEffect(() => {
     const initData = async () => {
       try {
-        const [custJson, statJson, userJson] = await Promise.all([
-          fetch(`${API_BASE}/customers`, { headers: authHeaders }).then((r) =>
-            r.json(),
-          ),
-          fetch(`${API_BASE}/statuses`, { headers: authHeaders }).then((r) =>
-            r.json(),
-          ),
-          fetch(`${API_BASE}/user-profile`, { headers: authHeaders }).then(
-            (r) => r.json(),
-          ),
+        const [custRes, statRes, userRes] = await Promise.all([
+          api.get("/customers"),
+          api.get("/statuses"),
+          api.get("/user-profile"),
         ]);
-        setCustomers(custJson.data || custJson);
-        setStatuses(statJson.data || statJson);
-        const user = userJson.data || userJson;
+
+        setCustomers(custRes.data.data || custRes.data);
+        setStatuses(statRes.data.data || statRes.data);
+        const user = userRes.data.data || userRes.data;
         setCurrentUser(user);
         setFormData((prev) => ({ ...prev, user_id: user?.id || "" }));
       } catch (err) {
         console.error("Initial load failed", err);
+        Swal.fire("ข้อผิดพลาด", "ไม่สามารถดึงข้อมูลพื้นฐานได้", "error");
       } finally {
         setLoadingInit(false);
       }
     };
     initData();
-  }, [authHeaders]);
+  }, []);
 
+  // 2. โหลดอุปกรณ์ตาม ID ลูกค้า
   const loadDevices = async (cid) => {
     setLoadingDevices(true);
     try {
-      const res = await fetch(`${API_BASE}/dropdown-customer-device/${cid}`, {
-        headers: authHeaders,
-      });
-      const json = await res.json();
-      setFilteredDevices(json.data || json);
+      const res = await api.get(`/dropdown-customer-device/${cid}`);
+      setFilteredDevices(res.data.data || res.data);
+    } catch (err) {
+      console.error("Failed to load devices", err);
     } finally {
       setLoadingDevices(false);
     }
   };
 
+  // 3. บันทึกข้อมูลใบสั่งซ่อม
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.customer_id)
@@ -106,7 +91,7 @@ export default function CreateRepairPage() {
     if (formData.device_id.length === 0)
       return Swal.fire(
         "ลืมเลือกอุปกรณ์",
-        "กรุณาเลือกอุปกรณ์คอมพิวเตอร์อย่างน้อย 1 ชิ้น",
+        "กรุณาเลือกอุปกรณ์อย่างน้อย 1 ชิ้น",
         "warning",
       );
     if (!formData.status_id)
@@ -118,12 +103,8 @@ export default function CreateRepairPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/repairs`, {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
+      const res = await api.post("/repairs", formData);
+      if (res.status === 200 || res.status === 201) {
         await Swal.fire({
           icon: "success",
           title: "สำเร็จ",
@@ -134,13 +115,16 @@ export default function CreateRepairPage() {
         router.push("/tec/repairs");
       }
     } catch (err) {
-      Swal.fire("ผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่", "error");
+      const errMsg = err.response?.data?.message || "ไม่สามารถบันทึกข้อมูลได้";
+      Swal.fire("ผิดพลาด", errMsg, "error");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
+  // --- UI Logic (Spinner & Full Layout) ---
+
+  if (loadingInit) {
     return (
       <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
         <div className="relative">
@@ -151,7 +135,7 @@ export default function CreateRepairPage() {
           />
         </div>
         <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
-          Loading...
+          Initializing...
         </p>
       </div>
     );
@@ -159,6 +143,7 @@ export default function CreateRepairPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* ... ส่วนหัว (Header) ... */}
       <div className="flex items-center gap-4 mb-2">
         <button
           onClick={() => router.back()}
@@ -180,14 +165,16 @@ export default function CreateRepairPage() {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 lg:grid-cols-3 gap-6"
       >
-        {/* Left: Customer & Devices */}
+        {/* คอลัมน์ซ้าย: ลูกค้าและอุปกรณ์ */}
+
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] border border-gray-50 shadow-sm space-y-6">
+            {/* Search Input */}
+
             <div className="space-y-4">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <User size={14} /> ข้อมูลลูกค้าและอุปกรณ์
               </label>
-
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   <Search size={18} />
@@ -203,9 +190,9 @@ export default function CreateRepairPage() {
                   }}
                   onFocus={() => setIsCustomerOpen(true)}
                 />
-
+                {/* Dropdown List */}
                 {isCustomerOpen && customerQuery && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-auto overflow-x-hidden">
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-auto">
                     {customers
                       .filter(
                         (c) =>
@@ -217,7 +204,7 @@ export default function CreateRepairPage() {
                       .map((c) => (
                         <div
                           key={c.id}
-                          className="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 transition-colors flex justify-between items-center"
+                          className="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 flex justify-between items-center"
                           onClick={() => {
                             setFormData((p) => ({
                               ...p,
@@ -245,13 +232,13 @@ export default function CreateRepairPage() {
               </div>
             </div>
 
+            {/* Device Selection Grid */}
             <div
-              className={`p-6 rounded-[2rem] transition-all ${formData.customer_id ? "bg-blue-50 border border-blue-100" : "bg-gray-50 text-gray-300 border border-transparent opacity-50"}`}
+              className={`p-6 rounded-[2rem] transition-all ${formData.customer_id ? "bg-blue-50 border border-blue-100" : "bg-gray-50 opacity-50"}`}
             >
-              <p className="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-blue-800">
+              <p className="text-xs font-black uppercase tracking-widest mb-4 text-blue-800">
                 เลือกอุปกรณ์ที่ส่งซ่อม ({formData.device_id.length})
               </p>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {loadingDevices ? (
                   <div className="col-span-2 py-6 text-center text-xs text-blue-400 font-bold">
@@ -261,11 +248,11 @@ export default function CreateRepairPage() {
                   filteredDevices.map((device) => (
                     <label
                       key={device.id}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.device_id.includes(device.id) ? "bg-white border-blue-500 shadow-md ring-2 ring-blue-100" : "bg-white/50 border-transparent hover:border-blue-200"}`}
+                      className={`flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-white ${formData.device_id.includes(device.id) ? "border-blue-500 shadow-md ring-2 ring-blue-100" : "border-transparent hover:border-blue-200"}`}
                     >
                       <input
                         type="checkbox"
-                        className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-5 h-5 rounded-lg text-blue-600 focus:ring-blue-500"
                         checked={formData.device_id.includes(device.id)}
                         onChange={(e) => {
                           const ids = e.target.checked
@@ -278,84 +265,87 @@ export default function CreateRepairPage() {
                       />
                       <div className="overflow-hidden">
                         <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">
-                          {device.device_type === "desktop" ? "PC" : "Laptop"}
+                          {device.device_type}
                         </p>
                         <p className="text-sm font-black text-gray-800 truncate">
                           {device.brand} {device.model}
                         </p>
-                        <p className="text-[10px] font-mono font-bold text-blue-500 tracking-tighter">
+                        <p className="text-[10px] font-mono font-bold text-blue-500">
                           S/N: {device.serial_number}
                         </p>
                       </div>
                     </label>
                   ))
                 )}
-                {formData.customer_id &&
-                  filteredDevices.length === 0 &&
-                  !loadingDevices && (
-                    <div className="col-span-2 py-4 text-center">
-                      <p className="text-xs text-gray-400 italic font-medium">
-                        ลูกค้าท่านนี้ยังไม่มีอุปกรณ์ในระบบ
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => router.push("/tec/devices/create")}
-                        className="mt-2 text-xs font-black text-blue-600 underline"
-                      >
-                        + เพิ่มเครื่องใหม่
-                      </button>
-                    </div>
-                  )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Order Summary & Status */}
+        {/* คอลัมน์ขวา: รายละเอียดใบสั่งซ่อม (Dark Theme) */}
         <div className="space-y-6">
           <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-xl space-y-6">
             <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
               <FileText size={14} /> Repair Order Details
             </h3>
-
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                     Repair Code
                   </label>
-                  <div className="w-full p-3 bg-gray-800 border-none rounded-xl font-mono text-xs text-blue-400 font-black">
+                  <div className="w-full p-3 bg-gray-800 rounded-xl font-mono text-xs text-blue-400 font-black">
                     {formData.repair_code}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                     Receive Date
                   </label>
                   <input
                     type="datetime-local"
                     value={formData.receive_date}
-                    className="w-full p-3 bg-gray-800 border-none text-white rounded-xl text-xs font-bold outline-none ring-1 ring-gray-700"
                     onChange={(e) =>
                       setFormData((p) => ({
                         ...p,
                         receive_date: e.target.value,
                       }))
                     }
+                    className="w-full p-3 bg-gray-800 border-none text-white rounded-xl text-xs font-bold outline-none ring-1 ring-gray-700"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  Estimate Price
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.estimate_price}
+                  onChange={(e) =>
+                    setFormData((p) => ({
+                      ...p,
+                      estimate_price: e.target.value,
+                    }))
+                  }
+                  className="w-full p-4 bg-gray-800 text-white rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                   Initial Status
                 </label>
                 <select
-                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-bold outline-none ring-1 ring-gray-700"
                   value={formData.status_id}
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, status_id: e.target.value }))
                   }
+                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-bold outline-none ring-1 ring-gray-700"
                 >
                   <option value="">เลือกสถานะเริ่มต้น...</option>
                   {statuses.map((s) => (
@@ -367,12 +357,11 @@ export default function CreateRepairPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                  Description (อาการเสีย)
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  Description
                 </label>
                 <textarea
                   rows={4}
-                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-medium outline-none ring-1 ring-gray-700"
                   placeholder="แจ้งอาการเสียโดยละเอียด..."
                   onChange={(e) =>
                     setFormData((p) => ({
@@ -380,13 +369,14 @@ export default function CreateRepairPage() {
                       problem_description: e.target.value,
                     }))
                   }
+                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-medium outline-none ring-1 ring-gray-700"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-5 rounded-2xl text-white font-black text-sm shadow-2xl shadow-blue-900/40 transition-all flex items-center justify-center gap-2 ${loading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 active:scale-95"}`}
+                className={`w-full py-5 rounded-2xl text-white font-black text-sm transition-all flex items-center justify-center gap-2 ${loading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-50 active:scale-95 shadow-2xl shadow-blue-900/40"}`}
               >
                 {loading ? (
                   <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -398,21 +388,17 @@ export default function CreateRepairPage() {
               </button>
             </div>
 
-            <div className="pt-4 border-t border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-600/30">
-                  <User size={14} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-tighter leading-none mb-1">
-                    Created By
-                  </p>
-                  <p className="text-xs font-bold text-blue-400">
-                    {currentUser?.name ||
-                      currentUser?.username ||
-                      "System User"}
-                  </p>
-                </div>
+            <div className="pt-4 border-t border-gray-800 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-600/30">
+                <User size={14} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-500 uppercase leading-none mb-1">
+                  Created By
+                </p>
+                <p className="text-xs font-bold text-blue-400">
+                  {currentUser?.name || "System User"}
+                </p>
               </div>
             </div>
           </div>

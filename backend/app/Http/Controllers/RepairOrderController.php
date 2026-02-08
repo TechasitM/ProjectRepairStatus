@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Mail;
 
 class RepairOrderController extends Controller
 {
-
-    // ===== ADMIN =====
+    
     public function index()
     {
         return RepairOrder::with(['customer','devices','status'])->get();
@@ -34,25 +33,73 @@ class RepairOrderController extends Controller
             'data' => $repair
         ]);
     }
-
-  public function updateStatus(Request $request, $id)
+    
+    public function store(Request $request)
     {
         $request->validate([
-            'status_id' => 'required|exists:repair_statuses,id', // ✅ แก้ตรงนี้
-            'note' => 'nullable|string',
+            'repair_code' => 'required|string|unique:repair_orders,repair_code',
+            'customer_id' => 'required|exists:customers,id',
+            'device_id'   => 'required|array|min:1',
+            'device_id.*' => 'exists:devices,id',
+            'estimate_price' => 'nullable|numeric|min:0',
+            'user_id'     => 'required|exists:users,id',
+            'status_id'   => 'required|exists:repair_statuses,id',
+            'problem_description' => 'nullable|string',
+            'receive_date' => 'required|date',
         ]);
+
+        // 1️⃣ สร้างใบสั่งซ่อม
+        $repair = RepairOrder::create([
+            'repair_code' => $request->repair_code,
+            'customer_id' => $request->customer_id,
+            'user_id'     => $request->user_id,
+            'status_id'   => $request->status_id,
+            'problem_description' => $request->problem_description,
+            'receive_date' => $request->receive_date,
+            'estimate_price' => $request->estimate_price,
+            'final_price' => null,
+        ]);
+
+        // 2️⃣ ผูกอุปกรณ์ (Many-to-Many)
+        $repair->devices()->attach($request->device_id);
+
+        return response()->json([
+            'message' => 'สร้างใบสั่งซ่อมสำเร็จ',
+            'data' => $repair->load('devices')
+        ], 201);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $rules = [
+            'status_id' => 'required|exists:repair_statuses,id',
+            'note' => 'nullable|string',
+        ];
+
+        // ⭐ ถ้า Close Job ต้องมี Final Price
+        if ($request->status_id == 5) {
+            $rules['final_price'] = 'required|numeric|min:0';
+        }
+
+        $request->validate($rules);
 
         $repair = RepairOrder::with(['customer', 'devices', 'status'])
             ->findOrFail($id);
 
-        // 1. Update main status
-        $repair->update([
+        // ⭐ Update Status + Final Price
+        $updateData = [
             'status_id' => $request->status_id,
-        ]);
+        ];
+
+        if ($request->filled('final_price')) {
+            $updateData['final_price'] = $request->final_price;
+        }
+
+        $repair->update($updateData);
 
         $updateTime = now();
 
-        // 2. Create timeline
+        // Timeline
         $repair->timelines()->create([
             'status_id' => $request->status_id,
             'user_id' => auth()->id() ?: 1,
@@ -63,7 +110,7 @@ class RepairOrderController extends Controller
         $repair->load('status');
         $statusName = $repair->status->status_name;
 
-        // 3. Send email + notification
+        // Email + Notification
         if ($repair->customer->email) {
             try {
                 Mail::to($repair->customer->email)->send(
@@ -82,6 +129,7 @@ class RepairOrderController extends Controller
                     'notification_status' => 'sent',
                 ]);
             } catch (\Exception $e) {
+
                 Notification::create([
                     'repair_order_id' => $repair->id,
                     'channel' => 'email',

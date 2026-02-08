@@ -155,7 +155,7 @@ export default function StatusManagementPage() {
             setStatusName("");
             setShowModal(true);
           }}
-          className="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-blue-700 flex items-center justify-center gap-2 font-black text-sm uppercase tracking-widest"
+          className="w-full sm:w-auto bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-blue-700 flex items-center justify-center gap-2 font-black text-sm uppercase tracking-widest"
         >
           <Plus size={18} /> เพิ่มสถานะใหม่
         </button>

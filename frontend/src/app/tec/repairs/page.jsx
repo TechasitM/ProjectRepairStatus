@@ -5,8 +5,7 @@ import Link from "next/link";
 import api from "@/services/api";
 import Swal from "sweetalert2";
 import { 
-  Search, Plus, Wrench, Clock, CheckCircle2, 
-  Trash2, Edit3, Monitor, Laptop, AlertCircle, 
+  Search, Plus, Wrench, Clock,Trash2, Edit3, Monitor, Laptop, AlertCircle, 
   Eye,Cpu
 } from "lucide-react";
 
@@ -110,7 +109,7 @@ export default function TecRepairsPage() {
         </div>
         <Link
           href="/tec/repairs/create"
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 font-bold text-sm"
+          className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 font-bold text-sm"
         >
           <Plus size={18} /> เพิ่มงานซ่อมใหม่
         </Link>

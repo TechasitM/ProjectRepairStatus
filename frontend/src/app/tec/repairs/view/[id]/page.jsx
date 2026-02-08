@@ -6,14 +6,14 @@ import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, User, Monitor, Laptop, Clock, 
   Printer, History, CheckCircle2, ShieldCheck,
-  Calendar, Hash, AlertCircle, MapPin
+  Calendar, Hash, AlertCircle, MapPin,Cpu
 } from "lucide-react";
 
 export default function RepairViewPage() {
   const { id } = useParams();
   const router = useRouter();
   const [repair, setRepair] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setIsLoading] = useState(true);
   
 
   useEffect(() => {

@@ -10,35 +10,34 @@ import {
   Mail,
   Bell,
   ArrowLeft,
+  ChevronRight,
+  Package,
 } from "lucide-react";
 
 /* ===============================
-   Status Color Helper
+    Status Color Helper (Updated for Theme)
 ================================ */
 function getStatusStyle(status) {
   switch (status) {
     case "รอซ่อม":
       return {
-        badge: "bg-yellow-50 text-yellow-700",
-        dot: "bg-yellow-500 ring-yellow-100",
+        badge: "bg-amber-50 text-amber-700 border-amber-100",
+        dot: "bg-amber-500 ring-amber-100",
       };
-
     case "กำลังซ่อม":
       return {
-        badge: "bg-blue-50 text-blue-700",
-        dot: "bg-blue-500 ring-blue-100",
+        badge: "bg-blue-50 text-blue-700 border-blue-100",
+        dot: "bg-blue-600 ring-blue-100",
       };
-
     case "เสร็จแล้ว":
       return {
-        badge: "bg-green-50 text-green-700",
-        dot: "bg-green-500 ring-green-100",
+        badge: "bg-emerald-50 text-emerald-700 border-emerald-100",
+        dot: "bg-emerald-500 ring-emerald-100",
       };
-
     default:
       return {
-        badge: "bg-gray-100 text-gray-600",
-        dot: "bg-gray-400 ring-gray-100",
+        badge: "bg-slate-100 text-slate-600 border-slate-200",
+        dot: "bg-slate-400 ring-slate-100",
       };
   }
 }
@@ -46,7 +45,6 @@ function getStatusStyle(status) {
 export default function TrackRepairPage() {
   const { code } = useParams();
   const router = useRouter();
-
   const [repair, setRepair] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,194 +67,207 @@ export default function TrackRepairPage() {
     if (code) fetchRepairData();
   }, [code, fetchRepairData]);
 
-  /* ---------- Loading ---------- */
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="h-10 w-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูล...</p>
+        </div>
       </div>
     );
 
-  /* ---------- Error ---------- */
   if (error)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <p className="text-red-600 mb-6">{error}</p>
-        <button
-          onClick={() => router.push("/")}
-          className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-        >
-          กลับหน้าหลัก
-        </button>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
+        <div className="bg-red-50 p-6 rounded-2xl text-center max-w-sm border border-red-100">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-700 font-semibold mb-6">{error}</p>
+          <button
+            onClick={() => router.push("/")}
+            className="w-full py-3 rounded-xl bg-black text-white hover:bg-slate-800 transition-all font-medium"
+          >
+            กลับหน้าหลัก
+          </button>
+        </div>
       </div>
     );
 
   const statusStyle = getStatusStyle(repair.status?.status_name);
 
-  /* ---------- UI ---------- */
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10 px-4">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Back */}
+    <div className="min-h-screen bg-[#F8FAFC] py-10 px-4">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Navigation */}
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition"
+          className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-black transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
-          ค้นหารหัสอื่น
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          ย้อนกลับ
         </button>
 
-        {/* Header */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Header Card (Black & Blue Theme) */}
+        <div className="bg-black rounded-3xl p-8 shadow-2xl shadow-blue-900/10 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 blur-[80px] opacity-20" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-800">
-                ติดตามสถานะงานซ่อม
+              <h1 className="text-3xl font-bold tracking-tight">
+                คุณ {repair.customer?.customer_name}
               </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                รหัสงาน:{" "}
-                <span className="text-gray-600">
-                  {repair.repair_code}
+              <div className="flex items-center gap-3 mt-2 opacity-80">
+                <span className="text-blue-400 font-mono text-lg font-semibold tracking-wider">
+                  #{repair.repair_code}
                 </span>
-              </p>
+                <span className="h-4 w-px bg-slate-700" />
+                <span className="text-sm flex items-center gap-1">
+                  <Package className="w-4 h-4" /> ตรวจสอบสถานะการซ่อม
+                </span>
+              </div>
             </div>
 
-            <span
-              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${statusStyle.badge}`}
-            >
-              <Clock className="w-4 h-4" />
+            <div className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border font-bold shadow-sm ${statusStyle.badge}`}>
+              <div className={`w-2 h-2 rounded-full animate-pulse ${statusStyle.dot}`} />
               {repair.status?.status_name}
-            </span>
+            </div>
           </div>
         </div>
 
-        {/* Main Grid */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left */}
+          
+          {/* Left Column: Details & Notifications */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Info */}
-            <Card title="ข้อมูลงานซ่อม">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                <div>
-                  <p className="text-gray-400 mb-1">อาการเสีย</p>
-                  <p className="text-gray-700">
-                    {repair.problem_description || "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-1">วันที่รับเครื่อง</p>
-                  <p className="text-gray-700">
-                    {repair.receive_date
-                      ? new Date(repair.receive_date).toLocaleDateString("th-TH")
-                      : "-"}
-                  </p>
-                </div>
+            
+            <Card title="ข้อมูลงานซ่อม" icon={<Package className="w-4 h-4" />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <InfoItem label="อาการเสีย" value={repair.problem_description} />
+                <InfoItem 
+                  label="วันที่รับเครื่อง" 
+                  value={repair.receive_date ? new Date(repair.receive_date).toLocaleDateString("th-TH", {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                  }) : "-"} 
+                />
+                <InfoItem 
+                   label="ราคาประเมิน" 
+                   value={repair.estimate_price ? Number(repair.estimate_price).toLocaleString() + " บาท" : "-"}
+                   isHighlight
+                />
+                <InfoItem 
+                   label="ราคาจริง" 
+                   value={repair.final_price ? Number(repair.final_price).toLocaleString() + " บาท" : "รอสรุปราคา"}
+                   isHighlight
+                   color="text-blue-600"
+                />
               </div>
             </Card>
 
-            {/* Notifications */}
-            <Card title="การแจ้งเตือน">
+            <Card title="การแจ้งเตือน" icon={<Mail className="w-4 h-4" />}>
               {repair.notifications?.length ? (
-                <ul className="space-y-3">
-                  {repair.notifications.map((n) => {
-                    const isSent = n.notification_status === "sent";
-                    return (
-                      <li
-                        key={n.id}
-                        className="flex justify-between items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50"
-                      >
+                <div className="space-y-3">
+                  {repair.notifications.map((n) => (
+                    <div key={n.id} className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-white rounded-xl shadow-sm">
+                          <Mail className="w-5 h-5 text-slate-400" />
+                        </div>
                         <div>
-                          <p className="flex items-center gap-2 text-gray-700 text-sm">
-                            <Mail className="w-4 h-4" />
-                            {n.channel === "email" ? "อีเมล" : n.channel}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {n.sent_datetime
-                              ? new Date(n.sent_datetime).toLocaleString("th-TH")
-                              : "-"}
+                          <p className="font-semibold text-slate-700 text-sm">แจ้งเตือนผ่าน{n.channel === "email" ? "อีเมล" : n.channel}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {n.sent_datetime ? new Date(n.sent_datetime).toLocaleString("th-TH") : "-"}
                           </p>
                         </div>
-
-                        <span
-                          className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${
-                            isSent
-                              ? "bg-green-50 text-green-700"
-                              : "bg-red-50 text-red-600"
-                          }`}
-                        >
-                          {isSent ? (
-                            <CheckCircle2 className="w-3 h-3" />
-                          ) : (
-                            <AlertCircle className="w-3 h-3" />
-                          )}
-                          {isSent ? "ส่งแล้ว" : "ล้มเหลว"}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                      </div>
+                      <StatusTag isSent={n.notification_status === "sent"} />
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <p className="text-gray-400 text-sm">ยังไม่มีการแจ้งเตือน</p>
+                <EmptyState message="ยังไม่มีการแจ้งเตือนในขณะนี้" />
               )}
             </Card>
           </div>
 
-          {/* Right */}
-          <Card title="ประวัติการดำเนินการ">
-            {repair.timelines?.length ? (
-              <div className="space-y-6">
-                {repair.timelines.map((t, index) => {
-                  const timelineStyle = getStatusStyle(
-                    t.status?.status_name
-                  );
+          {/* Right Column: Timeline */}
+          <div className="lg:col-span-1">
+            <Card title="ประวัติการดำเนินการ" icon={<Clock className="w-4 h-4" />}>
+              {repair.timelines?.length ? (
+                <div className="relative space-y-8 before:absolute before:inset-0 before:ml-2 before:h-full before:w-0.5 before:bg-slate-100">
+                  {repair.timelines.map((t, index) => {
+                    const tStyle = getStatusStyle(t.status?.status_name);
+                    return (
+                      <div key={t.id} className="relative pl-8 group">
+                        <div className={`absolute left-0 top-1 w-4 h-4 rounded-full border-4 border-white shadow-sm transition-transform group-hover:scale-125 ${tStyle.dot}`} />
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{t.status?.status_name}</p>
+                          <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider mb-2">
+                            {new Date(t.update_datetime).toLocaleString("th-TH")}
+                          </p>
+                          {t.note && (
+                            <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
+                              {t.note}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState message="ยังไม่มีข้อมูลประวัติ" />
+              )}
+            </Card>
+          </div>
 
-                  return (
-                    <div key={t.id} className="relative pl-6">
-                      {index !== repair.timelines.length - 1 && (
-                        <div className="absolute left-[7px] top-6 h-full w-px bg-gray-200" />
-                      )}
-
-                      <div
-                        className={`absolute left-0 top-1 w-4 h-4 rounded-full ring-4 ${timelineStyle.dot}`}
-                      />
-
-                      <p className="text-sm font-medium text-gray-800">
-                        {t.status?.status_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(t.update_datetime).toLocaleString("th-TH")}
-                      </p>
-
-                      {t.note && (
-                        <p className="text-xs text-gray-600 mt-2 bg-gray-50 p-3 rounded-lg border">
-                          <strong>หมายเหตุ:</strong> {t.note}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm">
-                ยังไม่มีประวัติการดำเนินการ
-              </p>
-            )}
-          </Card>
         </div>
       </div>
     </div>
   );
 }
 
-/* ---------- Card ---------- */
-function Card({ title, children }) {
+/* ---------- Sub-components ---------- */
+
+function Card({ title, icon, children }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <Bell className="w-4 h-4 text-blue-500" />
-        {title}
-      </h3>
+    <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+          {icon}
+        </div>
+        <h3 className="font-bold text-slate-800 tracking-tight">{title}</h3>
+      </div>
       {children}
+    </div>
+  );
+}
+
+function InfoItem({ label, value, isHighlight, color = "text-slate-800" }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{label}</p>
+      <p className={`text-sm ${isHighlight ? 'font-bold' : 'font-medium'} ${color}`}>
+        {value || "-"}
+      </p>
+    </div>
+  );
+}
+
+function StatusTag({ isSent }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${
+      isSent ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+    }`}>
+      {isSent ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+      {isSent ? "สำเร็จ" : "ล้มเหลว"}
+    </span>
+  );
+}
+
+function EmptyState({ message }) {
+  return (
+    <div className="py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+      <p className="text-sm text-slate-400">{message}</p>
     </div>
   );
 }

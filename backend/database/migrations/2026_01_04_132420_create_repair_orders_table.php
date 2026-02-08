@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('repair_code')->unique();
             $table->text('problem_description');
             $table->dateTime('receive_date');
+            $table->decimal('estimate_price', 10, 2)->nullable();
+            $table->decimal('final_price', 10, 2)->nullable();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('status_id')->constrained('repair_statuses');
-
+            
             $table->timestamps();
         });
     }

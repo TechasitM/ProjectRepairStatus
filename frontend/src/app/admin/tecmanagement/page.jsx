@@ -108,7 +108,7 @@ if (loading) {
         
         <Link
           href="/admin/tecmanagement/create"
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm"
+          className="w-full sm:w-auto bg-gray-900 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm"
         >
           <CirclePlus size={20} />
           <span>เพิ่มช่างเทคนิคใหม่</span>

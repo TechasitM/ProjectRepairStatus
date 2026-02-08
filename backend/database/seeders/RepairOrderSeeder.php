@@ -15,7 +15,8 @@ class RepairOrderSeeder extends Seeder
             'repair_code' => 'REP001',
             'customer_id' => 1,
             'user_id' => 1,
-            'status_id' => 1, // รับเครื่อง
+            'status_id' => 1,
+            'estimate_price' => 500,
             'problem_description' => 'เปิดไม่ติด',
             'receive_date' => Carbon::now()->subDays(2),
         ]);
@@ -24,7 +25,8 @@ class RepairOrderSeeder extends Seeder
             'repair_code' => 'REP002',
             'customer_id' => 2,
             'user_id' => 1,
-            'status_id' => 2, // กำลังซ่อม
+            'status_id' => 1,
+            'estimate_price' => 500,
             'problem_description' => 'จอฟ้า',
             'receive_date' => Carbon::now()->subDay(),
         ]);

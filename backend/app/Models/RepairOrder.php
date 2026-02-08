@@ -13,12 +13,15 @@ class RepairOrder extends Model
         'status_id',
         'problem_description',
         'receive_date',
+        'estimate_price',
+        'final_price',
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function devices()
     {
         return $this->belongsToMany(
@@ -28,6 +31,7 @@ class RepairOrder extends Model
             'device_id'
         );
     }
+    
     public function user()
     {
         return $this->belongsTo(User::class);

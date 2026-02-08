@@ -8,9 +8,8 @@ import {
   Search,
   Phone,
   Mail,
-  Trash,
   Eye,
-  Edit,
+  Plus,
   UserCircle,
   Cpu,
 } from "lucide-react";
@@ -131,6 +130,13 @@ export default function CustomersPage() {
             จัดการข้อมูลติดต่อและประวัติลูกค้าทั้งหมดในระบบ
           </p>
         </div>
+         <Link
+          href="/tec/customers/create"
+          className="group flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-[1.5rem] shadow-xl hover:bg-blue-600 font-black text-sm uppercase tracking-widest"
+        >
+          <Plus size={18} />
+          เพิ่มงานลูกค้า
+        </Link>
       </div>
 
       {/* Search Bar */}
@@ -148,7 +154,7 @@ export default function CustomersPage() {
           />
         </div>
       </div>
-
+      
       {/* Table */}
       <div className="bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-gray-200/40 overflow-hidden">
         <div className="overflow-x-auto">

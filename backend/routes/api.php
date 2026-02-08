@@ -37,7 +37,7 @@ Route::middleware(['auth:sanctum', 'role:1,2'])->group(function () {
     // งานซ่อม (Technician ทำงานที่ได้รับมอบหมาย / Admin ควบคุมภาพรวม)
     Route::patch('/repairs/{id}/status', [RepairOrderController::class, 'updateStatus']);
     Route::apiResource('/repairs', RepairOrderController::class);
-    
+
     // จัดการอุปกรณ์ในตารางกลาง (RepairOrderDevice)
     Route::prefix('repair-items')->group(function () {
         Route::get('/order/{orderId}', [RepairOrderDeviceController::class, 'getDevicesByOrder']);
@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'role:1,2'])->group(function () {
 });
 // --- กลุ่มที่ Admin (1) เข้าได้คนเดียวเท่านั้น ---    
 Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
+    
     //จัดการ user crud
     Route::prefix('tecmanagement')->group(function () {
         Route::get('/', [TecController::class, 'index']);       // list

@@ -19,6 +19,8 @@ class RepairStatusUpdated extends Mailable
     public $repairOrder;
     public $statusName;
     public $note;
+    public $estimate_price;
+    public $final_price;
     public $sent_datetime;
 
     public function __construct(RepairOrder $repairOrder, string $statusName, ?string $note = null)
@@ -26,6 +28,8 @@ class RepairStatusUpdated extends Mailable
         $this->repairOrder = $repairOrder;
         $this->statusName = $statusName;
         $this->note = $note;
+        $this->estimate_price = $repairOrder->estimate_price;
+        $this->final_price = $repairOrder->final_price;
         $this->sent_datetime = Carbon::now();
     }
 

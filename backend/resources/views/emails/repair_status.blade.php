@@ -90,10 +90,18 @@
                 @endif
             </div>
             <p>
+                ราคาประเมิน: {{ number_format($estimate_price, 2) }} บาท
+            </p>
+            
+            @if ($final_price)
+                <p>ราคาสุดท้าย: {{ number_format($final_price, 2) }} บาท</p>
+            @endif
+
+            <p>
                 🕒 เวลาอัปเดต:
                 {{ \Carbon\Carbon::parse($sent_datetime)->locale('th')->translatedFormat('j F Y เวลา H:i') }}
             </p>
-            
+
             <p><strong>เช็คข้อมูลได้ที่เว็บ:</strong></p>
 
             <a href="{{ url('http://localhost:3000/track/' . $repairOrder->repair_code) }}" class="btn">

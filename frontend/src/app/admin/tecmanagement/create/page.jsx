@@ -82,7 +82,7 @@ export default function CreateTecPage() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-2xl mx-auto min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Back Button */}
       <button 
