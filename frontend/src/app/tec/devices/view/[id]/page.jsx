@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
-import { 
-  ArrowLeft, Laptop, Monitor, Cpu, Calendar, 
-  User, Hash, HardDrive, Wrench, Clock, CheckCircle2 
+import {
+  ArrowLeft,
+  Laptop,
+  Monitor,
+  User,
+  Hash,
+  HardDrive,
+  Edit3,
+  ChevronRight,
 } from "lucide-react";
 
 export default function DeviceViewPage() {
@@ -15,163 +21,148 @@ export default function DeviceViewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDeviceDetail = async () => {
+    const fetchDevice = async () => {
       try {
         const res = await api.get(`/devices/${id}`);
         setDevice(res.data.data || res.data);
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
-    fetchDeviceDetail();
+
+    fetchDevice();
   }, [id]);
 
-   if (loading) {
+  if (loading) {
     return (
-      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-          <Cpu
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
-            size={24}
-          />
-        </div>
-        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
-          Loading...
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+          Loading
         </p>
       </div>
     );
   }
 
-  if (!device) return <div className="p-10 text-center text-rose-500 font-bold">ไม่พบข้อมูลอุปกรณ์</div>;
+  if (!device) {
+    return (
+      <div className="p-10 text-center text-rose-500 font-bold italic">
+        ไม่พบข้อมูลอุปกรณ์
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 mx-auto min-h-screen font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
+            className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-              Device Details
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              รายละเอียดอุปกรณ์
             </h1>
-            <p className="text-sm text-gray-500">
-              รายละเอียดและประวัติการซ่อมของเครื่องนี้
-            </p>
           </div>
         </div>
+
         <button
           onClick={() => router.push(`/tec/devices/edit/${id}`)}
-          className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-blue-600 transition-all shadow-md"
+          className="flex items-center gap-2 px-5 py-2.5 bg-yellow-600 border border-yellow-600 text-slate-700 rounded-xl font-bold text-sm hover:bg-yellow-500 transition-all shadow-sm active:scale-95"
         >
+          <Edit3 size={16} />
           แก้ไขข้อมูลเครื่อง
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Device Info Card */}
-        <div className="space-y-6">
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group">
-            {/* Static Background Icon */}
-            <div className="absolute -right-4 -top-4 text-gray-50">
-              {device.device_type === "desktop" ? <Monitor size={150} /> : <Laptop size={150} />}
+      {/* Main Content */}
+      {/* Main Content */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* LEFT : Device Information */}
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 space-y-8 relative overflow-hidden">
+          {/* Background Icon */}
+          <div className="absolute -right-8 -top-8 text-gray-100 pointer-events-none">
+            {device.device_type === "desktop" ? (
+              <Monitor size={140} />
+            ) : (
+              <Laptop size={140} />
+            )}
+          </div>
+
+          {/* Header */}
+          <div className="relative space-y-4">
+            <div
+              className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                device.device_type === "desktop"
+                  ? "bg-slate-800 text-white"
+                  : "bg-blue-600 text-white"
+              }`}
+            >
+              {device.device_type === "desktop" ? (
+                <Monitor size={22} />
+              ) : (
+                <Laptop size={22} />
+              )}
             </div>
 
-            <div className="relative space-y-6">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                device.device_type === "desktop" ? "bg-blue-600 text-white" : "bg-indigo-600 text-white"
-              }`}>
-                {device.device_type === "desktop" ? <Monitor size={28} /> : <Laptop size={28} />}
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Brand / Model
-                </p>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {device.brand}
-                </h2>
-                <p className="text-lg font-semibold text-blue-600">
-                  {device.model}
-                </p>
-              </div>
-
-              <div className="space-y-3 pt-4 border-t border-gray-50">
-                <div className="flex items-center gap-3 text-sm">
-                  <Hash size={16} className="text-gray-400" />
-                  <span className="font-mono font-semibold text-gray-600">
-                    {device.serial_number || "No Serial"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <User size={16} className="text-gray-400" />
-                  <span className="font-semibold text-gray-700">
-                    {device.customer?.customer_name}
-                  </span>
-                </div>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                {device.brand}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">{device.model}</p>
             </div>
           </div>
 
-          <div className="bg-blue-900 p-8 rounded-3xl text-white shadow-lg shadow-blue-100">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-4 flex items-center gap-2">
-              <HardDrive size={16} /> Specifications
+          {/* Serial */}
+          <div className="pt-6 border-t border-gray-100 space-y-3">
+            <div className="flex items-center gap-3 text-sm">
+              <Hash size={14} className="text-gray-400" />
+              <span className="font-mono text-gray-600">
+                {device.serial_number || "NO-SERIAL-TAG"}
+              </span>
+            </div>
+          </div>
+
+          {/* Specification */}
+          <div className="pt-6 border-t border-gray-100 space-y-2">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Specification
             </h3>
-            <p className="text-sm leading-relaxed font-normal whitespace-pre-wrap opacity-90">
-              {device.details || "ไม่ได้ระบุสเปคเครื่อง"}
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+              {device.spec_detail || "No technical specification provided."}
             </p>
           </div>
         </div>
 
-        {/* Right: Repair History Timeline */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-8 flex items-center gap-3">
-            <Wrench size={22} className="text-blue-600" /> ประวัติการซ่อม
-          </h3>
+        {/* RIGHT : Customer Information */}
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 space-y-6">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">
+              ข้อมูลเจ้าของอุปกรณ์
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              รายละเอียดลูกค้าที่เป็นเจ้าของเครื่อง
+            </p>
+          </div>
 
-          <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-100">
-            {device.repair_orders?.length > 0 ? (
-              device.repair_orders.map((repair, index) => (
-                <div key={repair.id} className="relative flex items-start gap-8 group">
-                  <div className={`absolute left-0 w-10 h-10 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 ${
-                    index === 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"
-                  }`}>
-                    {index === 0 ? <Clock size={16} /> : <CheckCircle2 size={16} />}
-                  </div>
-
-                  <div className="flex-1 bg-gray-50 p-5 rounded-2xl border border-transparent hover:border-blue-100 transition-all mb-2">
-                    <div className="flex flex-col md:flex-row justify-between md:items-center mb-2 gap-2">
-                      <span className="text-xs font-bold text-blue-600 font-mono uppercase">
-                        {repair.repair_code}
-                      </span>
-                      <span className="text-[10px] font-semibold text-gray-400 flex items-center gap-1 uppercase">
-                        <Calendar size={12} />
-                        {new Date(repair.receive_date).toLocaleDateString("th-TH")}
-                      </span>
-                    </div>
-                    <p className="text-sm font-semibold text-gray-800 mb-1">
-                      {repair.problem_description}
-                    </p>
-                    <div className="flex items-center justify-between mt-4">
-                      <span className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-500 uppercase">
-                        {repair.status?.status_name || "Pending"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
-                <p className="text-gray-400 font-medium">ยังไม่เคยมีประวัติการซ่อม</p>
+          <div className="pt-4 border-t border-gray-100 space-y-4">
+            <div className="flex items-center gap-3">
+              <User size={16} className="text-gray-400" />
+              <div>
+                <p className="text-sm font-semibold text-slate-800">
+                  {device.customer?.customer_name || "-"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {device.customer?.phone || ""}
+                </p>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

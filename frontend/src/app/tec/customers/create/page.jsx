@@ -3,11 +3,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import Swal from "sweetalert2";
-import { ArrowLeft, UserPlus, Phone, Save , Mail } from "lucide-react";
+import {
+  User,
+  Phone,
+  Mail,
+  Save,
+  UserPlus,
+  Info,
+} from "lucide-react";
 
 export default function CreateCustomer() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ customer_name: "", phone: "", email: "" });
+  const [formData, setFormData] = useState({
+    customer_name: "",
+    phone: "",
+    email: "",
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -52,131 +63,134 @@ export default function CreateCustomer() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex justify-center">
-      <div className="w-full max-w-lg">
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center text-gray-500 hover:text-gray-800 transition-colors mb-6 group"
-        >
-          <ArrowLeft
-            size={18}
-            className="mr-2 group-hover:-translate-x-1 transition-transform"
-          />
-          ย้อนกลับ
-        </button>
-
-        <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-blue-600 p-8 text-white text-center">
-            <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-              <UserPlus size={32} />
-            </div>
-            <h2 className="text-2xl font-bold">ลงทะเบียนลูกค้าใหม่</h2>
-            <p className="text-blue-100 text-sm mt-1">
-              กรอกข้อมูลเบื้องต้นเพื่อเริ่มต้นการทำรายการ
-            </p>
+    <div className="p-6 w-full min-h-screen font-sans">
+      <div className="mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-lg text-white">
+                <UserPlus size={24} />
+              </div>
+              เพิ่มลูกค้า
+            </h1>
           </div>
+        </div>
 
-          {/* Form Section */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            <div className="space-y-4">
-              {/* Input ชื่อ */}
-              <div>
-                <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                  <span className="w-1 h-1 bg-blue-500 rounded-full mr-2"></span>
-                  ชื่อ-นามสกุล
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    disabled={loading}
-                    className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
-                    placeholder="ระบุชื่อผู้ติดต่อ"
-                    value={formData.customer_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, customer_name: e.target.value })
-                    }
-                  />
+        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-200 overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-8">
+            {/* Section: Basic Info */}
+            <div className="grid grid-cols-1 gap-8">
+              <div className="flex items-start gap-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                <Info className="text-blue-500 mt-1" size={20} />
+                <div>
+                  <p className="text-blue-900 font-bold text-sm">
+                    ข้อมูลลูกค้าระบบ
+                  </p>
+                  <p className="text-blue-700/70 text-xs">
+                    คุณสามารถสร้างโดยใส่ชื่อ เบอร์โทร และอีเมลของลูกค้าได้จากหน้านี้
+                  </p>
                 </div>
               </div>
 
-              {/* Input เบอร์โทร */}
-              <div>
-                <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                  <span className="w-1 h-1 bg-blue-500 rounded-full mr-2"></span>
-                  เบอร์โทรศัพท์
-                </label>
-                <div className="relative">
-                  <Phone
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="tel"
-                    required
-                    disabled={loading}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
-                    placeholder="08X-XXX-XXXX"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                  />
+              <div className="space-y-6">
+                {/* Input Name */}
+                <div className="space-y-2">
+                  <label className="text-[13px] uppercase tracking-wider font-bold text-gray-400 flex items-center gap-2 ml-1">
+                    ชื่อ-นามสกุล
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                      <User size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      disabled={loading}
+                      value={formData.customer_name.customer_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, customer_name: e.target.value })
+                      }
+                      className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700"
+                      placeholder="ระบุชื่อลูกค้า"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              {/* Input อีเมล */}
-              <div>
-                <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                  <span className="w-1 h-1 bg-blue-500 rounded-full mr-2"></span>
-                  อีเมล
-                </label>
-                <div className="relative">
-                  <Mail
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="email"
-                    required
-                    disabled={loading}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
-                    placeholder="xxx@gmail.com"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                  />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Input Phone */}
+                  <div className="space-y-2">
+                    <label className="text-[13px] uppercase tracking-wider font-bold text-gray-400 flex items-center gap-2 ml-1">
+                      เบอร์โทรศัพท์
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                        <Phone size={20} />
+                      </div>
+                      <input
+                        type="text"
+                        disabled={loading}
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                        className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700"
+                        placeholder="08X-XXX-XXXX"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Input Email */}
+                  <div className="space-y-2">
+                    <label className="text-[13px] uppercase tracking-wider font-bold text-gray-400 flex items-center gap-2 ml-1">
+                      อีเมล
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                        <Mail size={20} />
+                      </div>
+                      <input
+                        type="email"
+                        disabled={loading}
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-700"
+                        placeholder="example@mail.com"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Button Group */}
-            <div className="pt-4 flex flex-col gap-3">
+            {/* Action Buttons */}
+            <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="flex items-center justify-center gap-2 px-8 py-4 text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 rounded-2xl transition-all font-bold"
+              >
+                ยกเลิก
+              </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gray-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex justify-center items-center disabled:bg-blue-400 disabled:shadow-none"
+                className="flex items-center justify-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {loading  ? (
                   <div className="flex items-center">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></div>
                     กำลังประมวลผล...
                   </div>
                 ) : (
-                  <div className="flex items-center">
-                    <Save size={18} className="mr-2" />
-                    ยืนยันการเพิ่มลูกค้า
-                  </div>
+                  <>
+                    <Save size={20} />
+                    บันทึกการเปลี่ยนแปลง
+                  </>
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="w-full py-3.5 text-gray-500 font-medium hover:bg-gray-50 rounded-xl transition-colors"
-              >
-                ยกเลิกและย้อนกลับ
               </button>
             </div>
           </form>

@@ -119,17 +119,21 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen font-sans">
+    <div className="p-6 w-full min-h-screen font-sans">
       {/* --- Header Section --- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <UserCircle className="text-blue-600" />
-            จัดการข้อมูลลูกค้า
-          </h1>
-          <p className="text-sm text-gray-500">
-            จัดการข้อมูลติดต่อและประวัติลูกค้าทั้งหมดในระบบ
-          </p>
+        <div className="flex items-center gap-5">
+          <div className="bg-blue-600 p-3.5 rounded-2xl text-white shadow-md">
+            <UserCircle size={28} strokeWidth={2} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              จัดการข้อมูลลูกค้า
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              จัดการข้อมูลติดต่อและประวัติลูกค้าทั้งหมดในระบบ
+            </p>
+          </div>
         </div>
       </div>
 
@@ -195,18 +199,12 @@ export default function CustomersPage() {
                           color="hover:text-blue-600 hover:bg-blue-50"
                           title="ประวัติลูกค้า"
                         />
-                        <ActionBtn
-                          href={`/admin/customers/edit/${customer.id}`}
-                          icon={<Edit size={18} />}
-                          color="hover:text-orange-600 hover:bg-orange-50"
-                          title="แก้ไข"
-                        />
                         <button
                           onClick={() =>
                             handleDelete(customer.id, customer.customer_name)
                           }
                           title="ลบลูกค้า"
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100"
+                          className="p-2 rounded-lg text-gray-900 hover:text-gray-900 hover:bg-red-500 border border-transparent hover:border-red-200"
                         >
                           <Trash size={18} />
                         </button>

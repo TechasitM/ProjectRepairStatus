@@ -5,15 +5,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import api from "@/services/api";
 import {
-  User,
-  Search,
-  FileText,
-  CheckCircle,
-  ChevronDown,
   ArrowLeft,
-  Cpu,
-  Link,
-  Plus,
 } from "lucide-react";
 
 export default function CreateRepairPage() {
@@ -126,133 +118,119 @@ export default function CreateRepairPage() {
 
   if (loadingInit) {
     return (
-      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-          <Cpu
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
-            size={24}
-          />
-        </div>
-        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
-          Initializing...
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+          Loading
         </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* ... ส่วนหัว (Header) ... */}
-      <div className="flex items-center gap-4 mb-2">
+    <div className="max-w-10xl mx-auto p-6 space-y-8">
+      {/* Header */}
+      <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-3 bg-white border rounded-2xl hover:text-blue-600 transition-all shadow-sm"
+          className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-2xl font-black text-gray-900 leading-tight">
+          <h1 className="text-xl font-semibold text-slate-900">
             สร้างใบรับซ่อมใหม่
           </h1>
-          <p className="text-sm text-gray-500 font-medium">
-            ระบุชื่อลูกค้าและอาการเสียเพื่อเปิดงานซ่อม
+          <p className="text-xs text-gray-400">
+            ระบุข้อมูลลูกค้าและอาการเสียเพื่อเปิดงานซ่อม
           </p>
         </div>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
       >
-        {/* คอลัมน์ซ้าย: ลูกค้าและอุปกรณ์ */}
-
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-8 rounded-[2.5rem] border border-gray-50 shadow-sm space-y-6">
-            {/* Search Input */}
-
-            <div className="space-y-4">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                <User size={14} /> ข้อมูลลูกค้าและอุปกรณ์
+        {/* LEFT */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 space-y-6">
+            {/* Customer Search */}
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                ลูกค้า
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Search size={18} />
-                </div>
-                <input
-                  type="text"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 ring-blue-500 outline-none transition-all font-bold"
-                  placeholder="ค้นหาชื่อลูกค้า หรือ เบอร์โทรศัพท์..."
-                  value={customerQuery}
-                  onChange={(e) => {
-                    setCustomerQuery(e.target.value);
-                    setIsCustomerOpen(true);
-                  }}
-                  onFocus={() => setIsCustomerOpen(true)}
-                />
-                {/* Dropdown List */}
-                {isCustomerOpen && customerQuery && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-auto">
-                    {customers
-                      .filter(
-                        (c) =>
-                          c.customer_name
-                            .toLowerCase()
-                            .includes(customerQuery.toLowerCase()) ||
-                          c.phone.includes(customerQuery),
-                      )
-                      .map((c) => (
-                        <div
-                          key={c.id}
-                          className="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 flex justify-between items-center"
-                          onClick={() => {
-                            setFormData((p) => ({
-                              ...p,
-                              customer_id: c.id,
-                              device_id: [],
-                            }));
-                            setCustomerQuery(c.customer_name);
-                            setIsCustomerOpen(false);
-                            loadDevices(c.id);
-                          }}
-                        >
-                          <div>
-                            <p className="font-black text-gray-800">
-                              {c.customer_name}
-                            </p>
-                            <p className="text-xs text-gray-400 font-bold">
-                              {c.phone}
-                            </p>
-                          </div>
-                          <ChevronDown size={14} className="text-gray-300" />
+
+              <input
+                type="text"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                placeholder="ค้นหาชื่อลูกค้า หรือ เบอร์โทรศัพท์..."
+                value={customerQuery}
+                onChange={(e) => {
+                  setCustomerQuery(e.target.value);
+                  setIsCustomerOpen(true);
+                }}
+                onFocus={() => setIsCustomerOpen(true)}
+              />
+
+              {isCustomerOpen && customerQuery && (
+                <div className="border border-gray-100 rounded-xl bg-white max-h-56 overflow-auto">
+                  {customers
+                    .filter(
+                      (c) =>
+                        c.customer_name
+                          .toLowerCase()
+                          .includes(customerQuery.toLowerCase()) ||
+                        c.phone.includes(customerQuery),
+                    )
+                    .map((c) => (
+                      <div
+                        key={c.id}
+                        className="px-4 py-3 text-sm hover:bg-gray-50 cursor-pointer"
+                        onClick={() => {
+                          setFormData((p) => ({
+                            ...p,
+                            customer_id: c.id,
+                            device_id: [],
+                          }));
+                          setCustomerQuery(c.customer_name);
+                          setIsCustomerOpen(false);
+                          loadDevices(c.id);
+                        }}
+                      >
+                        <div className="font-medium text-slate-800">
+                          {c.customer_name}
                         </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+                        <div className="text-xs text-gray-400">{c.phone}</div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
 
-            {/* Device Selection Grid */}
-            <div
-              className={`p-6 rounded-[2rem] transition-all ${formData.customer_id ? "bg-blue-50 border border-blue-100" : "bg-gray-50 opacity-50"}`}
-            >
-              <p className="text-xs font-black uppercase tracking-widest mb-4 text-blue-800">
-                เลือกอุปกรณ์ที่ส่งซ่อม ({formData.device_id.length})
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Device Selection */}
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                อุปกรณ์ที่ส่งซ่อม ({formData.device_id.length})
+              </label>
+
+              <div className="grid md:grid-cols-2 gap-3">
                 {loadingDevices ? (
-                  <div className="col-span-2 py-6 text-center text-xs text-blue-400 font-bold">
+                  <div className="text-xs text-gray-400 py-4">
                     กำลังโหลดอุปกรณ์...
                   </div>
                 ) : (
                   filteredDevices.map((device) => (
                     <label
                       key={device.id}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-white ${formData.device_id.includes(device.id) ? "border-blue-500 shadow-md ring-2 ring-blue-100" : "border-transparent hover:border-blue-200"}`}
+                      className={`p-4 rounded-xl border text-sm cursor-pointer transition ${
+                        formData.device_id.includes(device.id)
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-100 bg-gray-50 hover:bg-gray-100"
+                      }`}
                     >
                       <input
                         type="checkbox"
-                        className="w-5 h-5 rounded-lg text-blue-600 focus:ring-blue-500"
+                        className="mr-2"
                         checked={formData.device_id.includes(device.id)}
                         onChange={(e) => {
                           const ids = e.target.checked
@@ -263,16 +241,11 @@ export default function CreateRepairPage() {
                           setFormData((p) => ({ ...p, device_id: ids }));
                         }}
                       />
-                      <div className="overflow-hidden">
-                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">
-                          {device.device_type}
-                        </p>
-                        <p className="text-sm font-black text-gray-800 truncate">
-                          {device.brand} {device.model}
-                        </p>
-                        <p className="text-[10px] font-mono font-bold text-blue-500">
-                          S/N: {device.serial_number}
-                        </p>
+                      <div className="font-medium text-slate-800">
+                        {device.brand} {device.model}
+                      </div>
+                      <div className="text-xs text-gray-400 font-mono">
+                        SN: {device.serial_number}
                       </div>
                     </label>
                   ))
@@ -282,49 +255,46 @@ export default function CreateRepairPage() {
           </div>
         </div>
 
-        {/* คอลัมน์ขวา: รายละเอียดใบสั่งซ่อม (Dark Theme) */}
-        <div className="space-y-6">
-          <div className="bg-gray-900 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-            <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-              <FileText size={14} /> Repair Order Details
+        {/* RIGHT - Minimal */}
+        <div>
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 space-y-6">
+            <h3 className="text-sm font-semibold text-slate-900">
+              รายละเอียดงานซ่อม
             </h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                    Repair Code
-                  </label>
-                  <div className="w-full p-3 bg-gray-800 rounded-xl font-mono text-xs text-blue-400 font-black">
-                    {formData.repair_code}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                    Receive Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.receive_date}
-                    onChange={(e) =>
-                      setFormData((p) => ({
-                        ...p,
-                        receive_date: e.target.value,
-                      }))
-                    }
-                    className="w-full p-3 bg-gray-800 border-none text-white rounded-xl text-xs font-bold outline-none ring-1 ring-gray-700"
-                  />
+
+            <div className="space-y-4 text-sm">
+              <div>
+                <label className="text-xs text-gray-400 uppercase">
+                  Repair Code
+                </label>
+                <div className="mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg font-mono text-blue-600">
+                  {formData.repair_code}
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              <div>
+                <label className="text-xs text-gray-400 uppercase">
+                  Receive Date
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.receive_date}
+                  onChange={(e) =>
+                    setFormData((p) => ({
+                      ...p,
+                      receive_date: e.target.value,
+                    }))
+                  }
+                  className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 uppercase">
                   Estimate Price
                 </label>
-
                 <input
                   type="number"
-                  min="0"
-                  step="0.01"
                   value={formData.estimate_price}
                   onChange={(e) =>
                     setFormData((p) => ({
@@ -332,22 +302,25 @@ export default function CreateRepairPage() {
                       estimate_price: e.target.value,
                     }))
                   }
-                  className="w-full p-4 bg-gray-800 text-white rounded-2xl"
+                  className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              <div>
+                <label className="text-xs text-gray-400 uppercase">
                   Initial Status
                 </label>
                 <select
                   value={formData.status_id}
                   onChange={(e) =>
-                    setFormData((p) => ({ ...p, status_id: e.target.value }))
+                    setFormData((p) => ({
+                      ...p,
+                      status_id: e.target.value,
+                    }))
                   }
-                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-bold outline-none ring-1 ring-gray-700"
+                  className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
                 >
-                  <option value="">เลือกสถานะเริ่มต้น...</option>
+                  <option value="">เลือกสถานะ...</option>
                   {statuses.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.status_name}
@@ -356,50 +329,37 @@ export default function CreateRepairPage() {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              <div>
+                <label className="text-xs text-gray-400 uppercase">
                   Description
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="แจ้งอาการเสียโดยละเอียด..."
                   onChange={(e) =>
                     setFormData((p) => ({
                       ...p,
                       problem_description: e.target.value,
                     }))
                   }
-                  className="w-full p-4 bg-gray-800 border-none text-white rounded-2xl text-sm font-medium outline-none ring-1 ring-gray-700"
+                  className="w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-5 rounded-2xl text-white font-black text-sm transition-all flex items-center justify-center gap-2 ${loading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-50 active:scale-95 shadow-2xl shadow-blue-900/40"}`}
+                className={`w-full py-3 rounded-xl text-sm font-semibold transition ${
+                  loading
+                    ? "bg-gray-200 text-gray-400"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
               >
-                {loading ? (
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <CheckCircle size={18} /> บันทึกใบรับซ่อม
-                  </>
-                )}
+                {loading ? "กำลังบันทึก..." : "บันทึกใบรับซ่อม"}
               </button>
             </div>
 
-            <div className="pt-4 border-t border-gray-800 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-600/30">
-                <User size={14} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-500 uppercase leading-none mb-1">
-                  Created By
-                </p>
-                <p className="text-xs font-bold text-blue-400">
-                  {currentUser?.name || "System User"}
-                </p>
-              </div>
+            <div className="pt-4 border-t border-gray-100 text-xs text-gray-400">
+              Created by: {currentUser?.name || "System User"}
             </div>
           </div>
         </div>

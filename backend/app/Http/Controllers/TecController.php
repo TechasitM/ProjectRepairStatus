@@ -9,10 +9,10 @@ use Illuminate\Validation\Rule;
 
 class TecController extends Controller
 {
-    // 1. รายชื่อช่างทั้งหมด
+   // 1. รายชื่อช่างทั้งหมด (role = 1,2)
     public function index()
     {
-        return User::where('role', '2')
+        return User::whereIn('role', ['1','2'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -24,16 +24,13 @@ class TecController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-        ], [
-            'email.unique' => 'อีเมลนี้ถูกใช้ไปแล้ว',
-            'password.confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกัน',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => '2', // กำหนด role เป็น 2 เสมอ
+            'role' => 2,
         ]);
 
         return response()->json([
@@ -43,52 +40,70 @@ class TecController extends Controller
         ]);
     }
 
-    // 3. ดึงข้อมูลช่างคนเดียว (สำหรับหน้าแก้ไข)
+    // 3. ดึงข้อมูลคนเดียว
     public function show($id)
     {
-        // แก้จาก 'tec' เป็น '2' เพื่อให้หาเจอ
-        return User::where('role', '2')->findOrFail($id);
+        return User::findOrFail($id);
     }
 
-    // 4. อัปเดตข้อมูลช่าง
+    // 4. อัปเดตข้อมูลทั่วไป
     public function update(Request $request, $id)
     {
-        $tec = User::where('role', '2')->findOrFail($id);
+        $user = User::findOrFail($id);
 
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'email',
-                Rule::unique('users')->ignore($tec->id), // ข้ามการเช็ค unique สำหรับ email ตัวเอง
+                Rule::unique('users')->ignore($user->id),
             ],
-            'password' => 'nullable|min:8', // password เป็นค่าว่างได้ถ้าไม่ต้องการเปลี่ยน
+            'password' => 'nullable|min:8',
         ]);
 
-        $tec->name = $request->name;
-        $tec->email = $request->email;
+        $user->name = $request->name;
+        $user->email = $request->email;
 
         if ($request->filled('password')) {
-            $tec->password = Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
 
-        $tec->save();
+        $user->save();
 
         return response()->json([
             'status' => 200,
             'message' => 'อัปเดตข้อมูลสำเร็จ',
-            'data' => $tec
+            'data' => $user
         ]);
     }
 
-    // 5. ลบช่าง
-    public function destroy($id)
+    // 5. เปลี่ยน Role (Admin เท่านั้น)
+    public function updateRole(Request $request, $id)
     {
-        $tec = User::where('role', '2')->findOrFail($id);
-        $tec->delete();
+        $request->validate([
+            'role' => 'required|in:1,2'
+        ]);
+
+        $user = User::findOrFail($id);
+
+        $user->role = $request->role;
+        $user->save();
 
         return response()->json([
-            'message' => 'ลบช่างเทคนิคเรียบร้อย'
+            'status' => 200,
+            'message' => 'เปลี่ยนสิทธิ์เรียบร้อย',
+            'data' => $user
+        ]);
+    }
+
+    // 6. ลบ
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json([
+            'message' => 'ลบผู้ใช้เรียบร้อย'
         ]);
     }
 }

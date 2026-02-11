@@ -62,7 +62,7 @@ export default function CustomerDetailPage() {
   if (!customer) return null;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 w-full min-h-screen font-sans">
       {/* Header & Navigation */}
       <div className="flex items-center gap-4">
         <button
@@ -128,31 +128,11 @@ export default function CustomerDetailPage() {
 
                 <Link
                   href={`/admin/customers/edit/${customer.id}`}
-                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white text-sm font-bold border border-transparent"
+                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 bg-yellow-600 text-white rounded-xl hover:bg-yellow-500 hover:text-white text-sm font-bold border border-transparent"
                 >
                   <Edit size={16} /> แก้ไขข้อมูลติดต่อ
                 </Link>
               </div>
-            </div>
-          </div>
-
-          {/* Quick Action Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-blue-900 p-8 rounded-3xl shadow-xl text-white relative overflow-hidden group">
-            <div className="absolute bottom-0 right-0 opacity-10">
-              <PlusCircle size={120} />
-            </div>
-            <div className="relative z-10">
-              <h3 className="font-bold mb-2 text-lg">เปิดงานซ่อมใหม่</h3>
-              <p className="text-blue-100/60 text-xs mb-6 leading-relaxed">
-                สร้างใบรับซ่อมสำหรับอุปกรณ์ใหม่ <br />
-                หรืออุปกรณ์เดิมของลูกค้ารายนี้
-              </p>
-              <Link
-                href={`/tec/repairs/create?customer_id=${customer.id}`}
-                className="inline-flex items-center justify-center gap-2 w-full bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-blue-50 shadow-lg shadow-black/20"
-              >
-                <PlusCircle size={18} /> สร้างใบรับซ่อม
-              </Link>
             </div>
           </div>
         </div>
@@ -204,13 +184,6 @@ export default function CustomerDetailPage() {
                         className="flex-1 sm:flex-none text-center px-4 py-2 text-sm text-gray-500 hover:text-blue-600 font-bold border border-gray-100 hover:border-blue-100 rounded-lg"
                       >
                         รายละเอียด
-                      </Link>
-                      <Link
-                        href={`/tec/repairs/create?device_id=${device.id}`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="ซ่อมเครื่องนี้"
-                      >
-                        <History size={18} />
                       </Link>
                     </div>
                   </div>

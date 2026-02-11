@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RepairTimeline extends Model
 {
+    protected $table = 'repair_timelines';
+    
     protected $fillable = [
         'repair_order_id',
         'status_id',

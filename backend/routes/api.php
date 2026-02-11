@@ -13,13 +13,13 @@ use App\Http\Controllers\{
     NotificationController,
     RepairTimelineController,
     TecController,
-    DashBoardController
+    DashBoardController,
+    DashBoardAdminController,
 };
 
 /* ===== PUBLIC ===== */
 Route::get('/repairs/{keyword}', [PublicTrackingController::class, 'show']);
 Route::get('/repairs/phone/{phone}', [PublicTrackingController::class, 'trackByPhoneLatest']);
-Route::get('/repairs/{repairId}/notifications',[NotificationController::class, 'byRepair']);
 
 /* ===== AUTH ===== */
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,7 +28,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['auth:sanctum', 'role:1,2'])->group(function () {
     
     // การบริหารจัดการระบบ
-    Route::get('/dashboard', [DashBoardController::class, 'index']); 
+    Route::get('/dashboard', [DashBoardController::class, 'index']);
+     
     // ข้อมูลส่วนตัวและระบบ
     Route::get('/user-profile', fn(Request $request) => response()->json($request->user()));
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -54,9 +55,12 @@ Route::middleware(['auth:sanctum', 'role:1,2'])->group(function () {
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customers/{id}', [CustomerController::class, 'show']);
     Route::post('/customers', [CustomerController::class, 'store']);
-    
-    // รายการสถานะ (ช่างต้องอ่านข้อมูลไปใส่ Dropdown ได้)
-    Route::get('/statuses', [RepairStatusController::class, 'index']);
+     
+    //เป็นการดู log Timeline
+    Route::get('/repairs/{repair}/timeline',[RepairTimelineController::class, 'byRepair']);
+
+    // รายการสถานะ
+    Route::apiResource('/statuses', RepairStatusController::class);
 });
 // --- กลุ่มที่ Admin (1) เข้าได้คนเดียวเท่านั้น ---    
 Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
@@ -68,13 +72,12 @@ Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
         Route::get('/{id}', [TecController::class, 'show']);    // edit (get one)
         Route::put('/{id}', [TecController::class, 'update']);  // update
         Route::delete('/{id}', [TecController::class, 'destroy']); // delete
+        Route::patch('/{id}/role', [TecController::class, 'updateRole']);// update role only
     });
-    // Route::post('/register', [AuthController::class, 'register']);
 
+    // การบริหารจัดการระบบ
+    Route::get('/admin/dashboard-stats', [DashboardAdminController::class, 'index']);
+    
     // สิทธิ์ที่ Admin มีมากกว่า (เช่น การลบ หรือ แก้ไขข้อมูลสำคัญ)
     Route::apiResource('/customers', CustomerController::class)->only(['update', 'destroy']);
-    Route::apiResource('/statuses', RepairStatusController::class)->except(['index']);
-    
-    // ตัวอย่างเพิ่มเติม: Admin เท่านั้นที่ลบใบซ่อมได้
-    Route::delete('/repairs/{id}', [RepairOrderController::class, 'destroy']);
 });

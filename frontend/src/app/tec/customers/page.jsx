@@ -4,15 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import api from "@/services/api";
 import Swal from "sweetalert2";
-import {
-  Search,
-  Phone,
-  Mail,
-  Eye,
-  Plus,
-  UserCircle,
-  Cpu,
-} from "lucide-react";
+import { Search, Phone, Mail, Eye, Plus, UserCircle } from "lucide-react";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -102,37 +94,35 @@ export default function CustomersPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-[70vh] items-center justify-center gap-4 bg-gray-50/50">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-          <Cpu
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"
-            size={24}
-          />
-        </div>
-        <p className="font-bold text-gray-500 animate-pulse tracking-wide uppercase text-xs">
-          Loading...
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+          Loading
         </p>
       </div>
     );
   }
-
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen font-sans">
+    <div className="p-6 mx-auto min-h-screen font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase flex items-center gap-2">
-            <UserCircle className="text-blue-600" size={26} />
-            จัดการข้อมูลลูกค้า
-          </h1>
-          <p className="text-xs text-gray-400 font-medium tracking-wide">
-            จัดการข้อมูลติดต่อและประวัติลูกค้าทั้งหมดในระบบ
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-3 rounded-2xl shadow-sm text-blue-600 border border-gray-100">
+            <UserCircle size={28} />
+          </div>
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">
+              จัดการข้อมูลลูกค้า
+            </h1>
+            <p className="text-xs text-gray-400 font-medium tracking-wide">
+              จัดการข้อมูลติดต่อและประวัติลูกค้าทั้งหมดในระบบ
+            </p>
+          </div>
         </div>
-         <Link
+
+        <Link
           href="/tec/customers/create"
-          className="group flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-[1.5rem] shadow-xl hover:bg-blue-600 font-black text-sm uppercase tracking-widest"
+          className="group flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-[1rem] shadow-xl hover:bg-blue-600 font-black text-sm uppercase tracking-widest"
         >
           <Plus size={18} />
           เพิ่มงานลูกค้า
@@ -154,7 +144,7 @@ export default function CustomersPage() {
           />
         </div>
       </div>
-      
+
       {/* Table */}
       <div className="bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-gray-200/40 overflow-hidden">
         <div className="overflow-x-auto">

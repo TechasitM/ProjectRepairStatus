@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   Phone,
   Mail,
-  Edit,
   PlusCircle,
   Laptop,
   Smartphone,
@@ -47,22 +46,21 @@ export default function CustomerDetailPage() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50/50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
-          <p className="text-gray-500 font-medium animate-pulse">
-            กำลังโหลดโปรไฟล์ลูกค้า...
-          </p>
-        </div>
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+          Loading
+        </p>
       </div>
     );
+  }
 
   if (!customer) return null;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 font-sans">
+    <div className="p-6 w-full min-h-screen font-sans">
       {/* Header & Navigation */}
       <div className="flex items-center gap-4">
         <button
@@ -128,26 +126,6 @@ export default function CustomerDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Quick Action Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-blue-900 p-8 rounded-3xl shadow-xl text-white relative overflow-hidden group">
-            <div className="absolute bottom-0 right-0 opacity-10">
-              <PlusCircle size={120} />
-            </div>
-            <div className="relative z-10">
-              <h3 className="font-bold mb-2 text-lg">เปิดงานซ่อมใหม่</h3>
-              <p className="text-blue-100/60 text-xs mb-6 leading-relaxed">
-                สร้างใบรับซ่อมสำหรับอุปกรณ์ใหม่ <br />
-                หรืออุปกรณ์เดิมของลูกค้ารายนี้
-              </p>
-              <Link
-                href={`/tec/repairs/create?customer_id=${customer.id}`}
-                className="inline-flex items-center justify-center gap-2 w-full bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-blue-50 shadow-lg shadow-black/20"
-              >
-                <PlusCircle size={18} /> สร้างใบรับซ่อม
-              </Link>
-            </div>
-          </div>
         </div>
 
         {/* 2. Devices Content Area */}
@@ -193,17 +171,10 @@ export default function CustomerDetailPage() {
 
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                       <Link
-                        href={`/tec/devices/view/${device.id}`}
+                        href={`/admin/devices/view/${device.id}`}
                         className="flex-1 sm:flex-none text-center px-4 py-2 text-sm text-gray-500 hover:text-blue-600 font-bold border border-gray-100 hover:border-blue-100 rounded-lg"
                       >
                         รายละเอียด
-                      </Link>
-                      <Link
-                        href={`/tec/repairs/create?device_id=${device.id}`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="ซ่อมเครื่องนี้"
-                      >
-                        <History size={18} />
                       </Link>
                     </div>
                   </div>
@@ -229,7 +200,6 @@ export default function CustomerDetailPage() {
               )}
             </div>
           </div>
-
           {/* 3. Repair History Section */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mt-6">
             <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-white">
