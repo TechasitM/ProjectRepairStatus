@@ -9,27 +9,30 @@ class RepairOrder extends Model
     protected $fillable = [
         'repair_code',
         'customer_id',
+        'device_id',
         'user_id',
         'status_id',
         'problem_description',
         'receive_date',
         'estimate_price',
         'final_price',
+        'closed_at',
     ];
+
+    protected $casts = [
+        'receive_date' => 'datetime',
+        'closed_at' => 'datetime',
+    ];
+
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
     }
 
-    public function devices()
+    public function device()
     {
-        return $this->belongsToMany(
-            Device::class,
-            'repair_order_device',
-            'repair_order_id',
-            'device_id'
-        );
+        return $this->belongsTo(Device::class);
     }
     
     public function user()
@@ -50,6 +53,17 @@ class RepairOrder extends Model
     public function notifications()
     {
         return $this->hasMany(Notification::class, 'repair_order_id');
+    }
+
+    public function getRepairDurationAttribute()
+    {
+        if ($this->closed_at) {
+            return $this->receive_date
+                ->locale('th')
+                ->diffForHumans($this->closed_at, true);
+        }
+
+        return null;
     }
 }
 

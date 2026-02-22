@@ -27,20 +27,38 @@ ChartJS.register(
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
       .get("/admin/dashboard-stats")
-      .then((res) => setStats(res.data))
-      .catch((err) => console.error("Error fetching stats:", err));
+      .then((res) => {
+        setStats(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
-  // Data for Pie Chart
+  if (loading || !stats) {
+    return (
+      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+          Loading
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ ค่อยสร้าง chart หลังจากมี stats แล้ว
   const pieData = {
-    labels: stats.jobStatus?.map((s) => s.status_name) || [],
+    labels: stats.jobStatus.map((s) => s.status_name),
     datasets: [
       {
-        data: stats.jobStatus?.map((s) => s.repair_orders_count) || [],
+        data: stats.jobStatus.map((s) => s.repair_orders_count),
         backgroundColor: [
           "#3b82f6",
           "#f59e0b",
@@ -65,17 +83,6 @@ export default function AdminDashboard() {
       },
     ],
   };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-          Loading
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen">

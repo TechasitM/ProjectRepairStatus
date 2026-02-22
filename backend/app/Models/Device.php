@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Device extends Model
 {
+    protected $table = 'devices';
     protected $fillable = [
         'customer_id',
         'device_type',
@@ -22,12 +23,7 @@ class Device extends Model
 
     public function repairOrders()
     {
-        return $this->belongsToMany(
-            RepairOrder::class,
-            'repair_order_device',
-            'device_id',
-            'repair_order_id'
-        );
+        return $this->hasMany(RepairOrder::class);
     }
 }
 

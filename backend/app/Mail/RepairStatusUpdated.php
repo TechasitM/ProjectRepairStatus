@@ -3,6 +3,9 @@
 namespace App\Mail;
 
 use App\Models\RepairOrder;
+use App\Models\User;
+use App\Models\RepairStatus;
+use App\Models\Customer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -22,15 +25,23 @@ class RepairStatusUpdated extends Mailable
     public $estimate_price;
     public $final_price;
     public $sent_datetime;
+    public $updatedBy;
 
-    public function __construct(RepairOrder $repairOrder, string $statusName, ?string $note = null)
+   public function __construct(
+        RepairOrder $repairOrder,
+        string $statusName,
+        ?string $note = null,
+        ?Carbon $sentDatetime = null,
+        ?User $updatedBy = null
+    )
     {
         $this->repairOrder = $repairOrder;
         $this->statusName = $statusName;
         $this->note = $note;
         $this->estimate_price = $repairOrder->estimate_price;
         $this->final_price = $repairOrder->final_price;
-        $this->sent_datetime = Carbon::now();
+        $this->sent_datetime = $sentDatetime ?? now();
+        $this->updatedBy = $updatedBy;
     }
 
     /**

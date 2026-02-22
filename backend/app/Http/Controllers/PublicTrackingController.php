@@ -9,9 +9,26 @@ use Illuminate\Support\Facades\DB;
 class PublicTrackingController extends Controller
 {
         // ===== PUBLIC (ลูกค้า) =====
-  public function show($keyword) //ค้นหาด้วย code 
+    public function show($keyword)
     {
-        $query = RepairOrder::with(['status', 'timelines.status', 'customer', 'notifications']);
+        $query = RepairOrder::select([
+                'id',
+                'repair_code',
+                'receive_date',
+                'problem_description',
+                'estimate_price',
+                'final_price',
+                'closed_at',
+                'status_id',
+                'customer_id'
+            ])
+            ->with([
+                'status:id,status_name',
+                'customer:id,customer_name',
+                'timelines:id,repair_order_id,status_id,note,update_datetime',
+                'timelines.status:id,status_name',
+                'notifications:id,repair_order_id,channel,notification_status,sent_datetime'
+            ]);
 
         if (is_numeric($keyword)) {
             $query->where('id', $keyword);
@@ -19,17 +36,33 @@ class PublicTrackingController extends Controller
             $query->where('repair_code', $keyword);
         }
 
-        return $query->firstOrFail();
+        return response()->json($query->firstOrFail());
     }
 
-    public function trackByPhoneLatest($phone)//ค้นหาด้วย Phone
+    public function trackByPhoneLatest($phone)
     {
         return response()->json(
-            RepairOrder::whereHas('customer', function ($q) use ($phone) {
+            RepairOrder::select([
+                    'id',
+                    'repair_code',
+                    'receive_date',
+                    'problem_description',
+                    'estimate_price',
+                    'final_price',
+                    'closed_at',
+                    'status_id',
+                    'customer_id'
+                ])
+                ->whereHas('customer', function ($q) use ($phone) {
                     $q->where('phone', $phone);
                 })
-                // เพิ่ม 'timelines.status' เข้าไปตรงนี้
-                ->with(['status', 'customer', 'timelines.status','notifications']) 
+                ->with([
+                    'status:id,status_name',
+                    'customer:id,customer_name',
+                    'timelines:id,repair_order_id,status_id,note,update_datetime',
+                    'timelines.status:id,status_name',
+                    'notifications:id,repair_order_id,channel,notification_status,sent_datetime'
+                ])
                 ->latest('created_at')
                 ->firstOrFail()
         );

@@ -8,40 +8,40 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $request->validate(
-            [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-            ],
-            [
-                'name.required' => 'กรุณาใส่ชื่อ',
-                'email.required' => 'กรุณาใส่อีเมล',
-                'email.email' => 'รูปแบบอีเมลไม่ถูกต้อง',
-                'email.max' => 'ความยาวของอีเมลต้องไม่เกิน :max ตัวอักษร',
-                'email.unique' => 'อีเมลนี้ถูกใช้ไปแล้ว',
-                'password.required' => 'กรุณาใส่รหัสผ่าน',
-                'password.min' => 'รหัสผ่านต้องมีอย่างน้อย :min ตัวอักษร',
-                'password.confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกับรหัสผ่านที่ยืนยัน',
-            ]
-        );
+    // public function register(Request $request)
+    // {
+    //     $request->validate(
+    //         [
+    //             'name' => 'required|string|max:255',
+    //             'email' => 'required|string|email|max:255|unique:users',
+    //             'password' => 'required|string|min:8|confirmed',
+    //         ],
+    //         [
+    //             'name.required' => 'กรุณาใส่ชื่อ',
+    //             'email.required' => 'กรุณาใส่อีเมล',
+    //             'email.email' => 'รูปแบบอีเมลไม่ถูกต้อง',
+    //             'email.max' => 'ความยาวของอีเมลต้องไม่เกิน :max ตัวอักษร',
+    //             'email.unique' => 'อีเมลนี้ถูกใช้ไปแล้ว',
+    //             'password.required' => 'กรุณาใส่รหัสผ่าน',
+    //             'password.min' => 'รหัสผ่านต้องมีอย่างน้อย :min ตัวอักษร',
+    //             'password.confirmed' => 'ยืนยันรหัสผ่านไม่ตรงกับรหัสผ่านที่ยืนยัน',
+    //         ]
+    //     );
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => Hash::make($request->password),
+    //     ]);
        
-        $token = $user->createToken($user->email . '_Token')->plainTextToken;
-        return response()->json([
-            'status' => 200,
-            'token' => $token, // ส่งค่า token กลับไปยังผู้ใช้
-            'user' => $user,   // ส่งข้อมูลผู้ใช้กลับไปยังผู้ใช้
-            'message' => 'สมัครสมาชิกสำเร็จ' // ข้อความแจ้งเตือนว่าสมัครสมาชิกสำเร็จ
-        ]);
-    }
+    //     $token = $user->createToken($user->email . '_Token')->plainTextToken;
+    //     return response()->json([
+    //         'status' => 200,
+    //         'token' => $token, // ส่งค่า token กลับไปยังผู้ใช้
+    //         'user' => $user,   // ส่งข้อมูลผู้ใช้กลับไปยังผู้ใช้
+    //         'message' => 'สมัครสมาชิกสำเร็จ' // ข้อความแจ้งเตือนว่าสมัครสมาชิกสำเร็จ
+    //     ]);
+    // }
 
     public function login(Request $request)
     {
@@ -63,11 +63,14 @@ class AuthController extends Controller
 
                     $user = Auth::user();
 
+                    $user->tokens()->delete();
+
                     if ($user->role === 'admin') {
                         $token = $user->createToken($user->email . '_AdminToken', ['server:admin'])->plainTextToken;
                     } else {
                         $token = $user->createToken($user->email . '_Token', [''])->plainTextToken;
                     }
+                    
                     return response()->json([
                         'token' => $token, // ส่งค่า token กลับไปยังผู้ใช้
                         'user' => $user,   // ส่งข้อมูลผู้ใช้กลับไปยังผู้ใช้

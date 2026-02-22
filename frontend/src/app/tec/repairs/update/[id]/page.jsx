@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "@/services/api";
 import { useParams, useRouter } from "next/navigation";
+import { getStatusStyle } from "@/services/status";
 import Swal from "sweetalert2";
 import {
   ArrowLeft,
@@ -22,44 +23,76 @@ export default function RepairUpdatePage() {
 
   const [repair, setRepair] = useState(null);
   const [statuses, setStatuses] = useState([]);
+  const [device, setDevice] = useState(null);
   const [newStatus, setNewStatus] = useState("");
   const [note, setNote] = useState("");
   const [finalPrice, setFinalPrice] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setIsLoading] = useState(true);
 
-  const CLOSE_STATUS_ID = 5;
+  //หาสถานะ "เสร็จแล้ว" แบบ dynamic ไม่ hardcode id
+  const closeStatus = useMemo(() => {
+    return statuses.find((s) => s.status_name === "ซ่อมเสร็จแล้ว");
+  }, [statuses]);
+
+  const isCloseStatus = useMemo(() => {
+    return closeStatus && Number(newStatus) === closeStatus.id;
+  }, [newStatus, closeStatus]);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
         const [repairRes, statusRes] = await Promise.all([
           api.get(`/repairs/${id}`),
           api.get("/statuses"),
         ]);
-        setRepair(repairRes.data.data || repairRes.data);
+
+        if (!isMounted) return;
+
+        const repairData = repairRes.data.data || repairRes.data;
+        setRepair(repairData);
         setStatuses(statusRes.data.data || statusRes.data);
+
+        if (repairData?.device_id) {
+          try {
+            const deviceRes = await api.get(`/devices/${repairData.device_id}`);
+
+            if (isMounted) {
+              setDevice(deviceRes.data.data || deviceRes.data);
+            }
+          } catch (deviceError) {
+            console.error("โหลด device ไม่สำเร็จ", deviceError);
+          }
+        }
       } catch (error) {
         Swal.fire("ผิดพลาด", "ไม่สามารถดึงข้อมูลได้", "error");
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
+
     if (id) fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const updateStatus = async () => {
     if (!newStatus || isUpdating) return;
 
-    if (
-      Number(newStatus) === CLOSE_STATUS_ID &&
-      (!finalPrice || finalPrice <= 0)
-    ) {
-      return Swal.fire(
-        "กรุณาใส่ราคาปิดงาน",
-        "ต้องระบุราคาที่ถูกต้องก่อนปิดงานซ่อม",
-        "warning",
-      );
+    // Validate ราคาแบบปลอดภัย
+    if (isCloseStatus) {
+      const priceNumber = Number(finalPrice);
+      if (!priceNumber || priceNumber <= 0 || isNaN(priceNumber)) {
+        return Swal.fire(
+          "กรุณาใส่ราคาปิดงาน",
+          "ต้องระบุราคาที่ถูกต้องก่อนปิดงานซ่อม",
+          "warning",
+        );
+      }
     }
 
     const confirm = await Swal.fire({
@@ -70,24 +103,24 @@ export default function RepairUpdatePage() {
       confirmButtonColor: "#2563eb",
       confirmButtonText: "อัปเดตและแจ้งเตือน",
       cancelButtonText: "ยกเลิก",
-      customClass: {
-        container: "font-sans",
-      },
     });
 
     if (!confirm.isConfirmed) return;
+
     setIsUpdating(true);
 
     try {
       const payload = {
-        status_id: newStatus,
-        note: note,
+        status_id: Number(newStatus),
+        note: note?.trim() || null,
       };
-      if (Number(newStatus) === CLOSE_STATUS_ID) {
+
+      if (isCloseStatus) {
         payload.final_price = Number(finalPrice);
       }
 
       const response = await api.patch(`/repairs/${repair.id}/status`, payload);
+
       setRepair(response.data.data);
       setNewStatus("");
       setNote("");
@@ -100,13 +133,17 @@ export default function RepairUpdatePage() {
         showConfirmButton: false,
       });
     } catch (error) {
-      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตสถานะได้", "error");
+      const message =
+        error?.response?.data?.message ||
+        "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่";
+
+      Swal.fire("เกิดข้อผิดพลาด", message, "error");
     } finally {
       setIsUpdating(false);
     }
   };
 
- if (loading) {
+  if (loading) {
     return (
       <div className="flex flex-col h-[70vh] items-center justify-center gap-3 bg-gray-50/30">
         <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -123,6 +160,8 @@ export default function RepairUpdatePage() {
         ไม่พบข้อมูลงานซ่อม
       </div>
     );
+
+  const statusStyle = getStatusStyle(repair.status?.status_name);
 
   return (
     <div className="p-6 mx-auto space-y-8 font-sans">
@@ -141,11 +180,7 @@ export default function RepairUpdatePage() {
                 {repair.repair_code}
               </h1>
               <div
-                className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${
-                  repair.status?.id === 4
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                    : "bg-blue-50 text-blue-600 border-blue-100"
-                }`}
+                className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border ${statusStyle.badge}`}
               >
                 {repair.status?.status_name}
               </div>
@@ -175,11 +210,16 @@ export default function RepairUpdatePage() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                 <Monitor size={12} className="text-blue-500" /> Device Info
               </p>
+
               <p className="font-bold text-slate-800 text-lg mb-1 leading-tight">
-                {repair.device?.brand} {repair.device?.model}
+                {device?.brand} {device?.model}
               </p>
+
               <p className="text-[10px] font-mono font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded w-fit">
-                SN: {repair.device?.serial_number || "NO-SERIAL"}
+                SN: {device?.serial_number || "NO-SERIAL"}
+              </p>
+              <p className="font-bold text-slate-800 text-lg mb-1 leading-tight">
+                {device?.spec_detail}
               </p>
             </div>
           </div>
@@ -194,45 +234,48 @@ export default function RepairUpdatePage() {
               {repair.timelines
                 ?.slice()
                 .reverse()
-                .map((t, idx) => (
-                  <div key={t.id} className="relative pl-12 group">
-                    {/* Timeline Dot */}
-                    <div
-                      className={`absolute left-0 top-1 w-9 h-9 -translate-x-0.5 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 transition-all ${
-                        idx === 0
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-100 text-slate-400"
-                      }`}
-                    >
-                      {idx === 0 ? (
-                        <Clock size={14} />
-                      ) : (
-                        <CheckCircle2 size={14} />
-                      )}
-                    </div>
+                .map((t) => {
+                  // ดึงสีตามสถานะจากฟังก์ชัน
+                  const style = getStatusStyle(t.status?.status_name);
 
-                    <div className="flex flex-col gap-1.5 bg-slate-50/50 p-4 rounded-2xl border border-transparent group-hover:border-slate-100 group-hover:bg-white transition-all">
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[11px] font-black uppercase tracking-tight ${idx === 0 ? "text-blue-600" : "text-slate-600"}`}
-                        >
-                          {t.status?.status_name}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                          {new Date(t.update_datetime).toLocaleString("th-TH", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </span>
+                  return (
+                    <div key={t.id} className="relative pl-12 group">
+                      {/* Timeline Dot: ใช้สีจาก style.dot */}
+                      <div
+                        className={`absolute left-0 top-1 w-9 h-9 -translate-x-0.5 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 transition-all ${style.dot.split(" ")[0]} text-white`}
+                      >
+                        <CheckCircle2 size={14} />
                       </div>
-                      {t.note && (
-                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                          {t.note}
-                        </p>
-                      )}
+
+                      {/* กล่องข้อมูล: ใช้สี badge จาก style.badge */}
+                      <div
+                        className={`flex flex-col gap-1.5 p-4 rounded-2xl border ${style.badge} bg-opacity-10 border-transparent group-hover:bg-opacity-20 transition-all`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[11px] font-black uppercase tracking-tight`}
+                          >
+                            {t.status?.status_name}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400">
+                            {new Date(t.update_datetime).toLocaleString(
+                              "th-TH",
+                              {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              },
+                            )}
+                          </span>
+                        </div>
+                        {t.note && (
+                          <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                            {t.note}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -284,7 +327,7 @@ export default function RepairUpdatePage() {
               </div>
 
               {/* Final Price */}
-              {Number(newStatus) === CLOSE_STATUS_ID && (
+              {id && isCloseStatus && (
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-2">
                     <CircleDollarSign size={14} />
@@ -293,8 +336,13 @@ export default function RepairUpdatePage() {
                   <div className="relative">
                     <input
                       type="number"
+                      min="0"
+                      step="0.01"
                       value={finalPrice}
-                      onChange={(e) => setFinalPrice(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value >= 0) setFinalPrice(value);
+                      }}
                       placeholder="0.00"
                       className="w-full bg-gray-50 border border-emerald-200 text-emerald-600 px-4 py-4 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-lg font-semibold transition"
                       disabled={isUpdating}

@@ -22,37 +22,15 @@ export default function LoginModal({ open, onClose }) {
       const res = await api.post("/login", { email, password });
       const { token, user } = res.data;
 
-      document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
-      document.cookie = `role=${user.role}; path=/; max-age=86400; SameSite=Lax`;
       localStorage.setItem("token", token);
-
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 2000,
-      });
 
       onClose();
 
       if (user.role === 1) {
-        await Toast.fire({
-          icon: "success",
-          title: `Admin: ยินดีต้อนรับคุณ ${user.name}`,
-        });
         router.push("/admin/dashboard");
       } else if (user.role === 2) {
-        await Toast.fire({
-          icon: "success",
-          title: `Technician: สวัสดีคุณ ${user.name}`,
-        });
         router.push("/tec/dashboard");
       } else {
-        Swal.fire({
-          icon: "info",
-          title: "เข้าสู่ระบบสำเร็จ",
-          text: "คุณไม่มีสิทธิ์เข้าถึงส่วนงานพนักงาน",
-        });
         router.push("/");
       }
     } catch (err) {
@@ -60,7 +38,6 @@ export default function LoginModal({ open, onClose }) {
         icon: "error",
         title: "เข้าสู่ระบบไม่สำเร็จ",
         text: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
-        confirmButtonColor: "#2563eb",
       });
     } finally {
       setIsLoading(false);
@@ -91,9 +68,7 @@ export default function LoginModal({ open, onClose }) {
             <Cpu size={40} />
           </div>
           <h1 className="text-3xl">Staff Portal</h1>
-          <p className="text-gray-500  mt-2">
-            ระบบจัดการหลังบ้าน
-          </p>
+          <p className="text-gray-500  mt-2">ระบบจัดการหลังบ้าน</p>
         </div>
 
         {/* Form */}

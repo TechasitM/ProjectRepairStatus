@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import api from "@/services/api";
-import {
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function CreateRepairPage() {
   const router = useRouter();
@@ -25,7 +23,7 @@ export default function CreateRepairPage() {
   const [formData, setFormData] = useState({
     repair_code: `RP-${Date.now()}`,
     customer_id: "",
-    device_id: [],
+    device_id: "",
     user_id: "",
     status_id: "",
     problem_description: "",
@@ -190,7 +188,7 @@ export default function CreateRepairPage() {
                           setFormData((p) => ({
                             ...p,
                             customer_id: c.id,
-                            device_id: [],
+                            device_id: "",
                           }));
                           setCustomerQuery(c.customer_name);
                           setIsCustomerOpen(false);
@@ -210,7 +208,7 @@ export default function CreateRepairPage() {
             {/* Device Selection */}
             <div className="space-y-3">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                อุปกรณ์ที่ส่งซ่อม ({formData.device_id.length})
+                เลือกอุปกรณ์ที่ส่งซ่อม
               </label>
 
               <div className="grid md:grid-cols-2 gap-3">
@@ -218,28 +216,32 @@ export default function CreateRepairPage() {
                   <div className="text-xs text-gray-400 py-4">
                     กำลังโหลดอุปกรณ์...
                   </div>
+                ) : filteredDevices.length === 0 ? (
+                  <div className="text-xs text-gray-400 py-4">
+                    ลูกค้ารายนี้ยังไม่มีอุปกรณ์
+                  </div>
                 ) : (
                   filteredDevices.map((device) => (
                     <label
                       key={device.id}
                       className={`p-4 rounded-xl border text-sm cursor-pointer transition ${
-                        formData.device_id.includes(device.id)
+                        formData.device_id == device.id
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-100 bg-gray-50 hover:bg-gray-100"
                       }`}
                     >
                       <input
-                        type="checkbox"
+                        type="radio"
+                        name="device_id"
+                        value={device.id}
+                        checked={formData.device_id == device.id}
+                        onChange={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            device_id: device.id, // ✅ เก็บค่าเดียว
+                          }))
+                        }
                         className="mr-2"
-                        checked={formData.device_id.includes(device.id)}
-                        onChange={(e) => {
-                          const ids = e.target.checked
-                            ? [...formData.device_id, device.id]
-                            : formData.device_id.filter(
-                                (id) => id !== device.id,
-                              );
-                          setFormData((p) => ({ ...p, device_id: ids }));
-                        }}
                       />
                       <div className="font-medium text-slate-800">
                         {device.brand} {device.model}

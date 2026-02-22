@@ -18,6 +18,9 @@ return new class extends Migration
             $table->dateTime('receive_date');
             $table->decimal('estimate_price', 10, 2)->nullable();
             $table->decimal('final_price', 10, 2)->nullable();
+            $table->timestamp('closed_at')->nullable()->index();
+
+            $table->foreignId('device_id')->constrained()->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('status_id')->constrained('repair_statuses');

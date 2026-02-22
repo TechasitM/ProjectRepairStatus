@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
+import { getStatusStyle } from "@/services/status";
+
 import {
   Clock,
   CheckCircle2,
@@ -17,26 +19,6 @@ import {
 /* ===============================
     Status Color Helper
 ================================ */
-function getStatusStyle(status) {
-  const styles = {
-    "รออะไหล่": {
-      badge: "bg-amber-50 text-amber-700 border-amber-200",
-      dot: "bg-amber-500 ring-4 ring-amber-100",
-    },
-    "กำลังซ่อม": {
-      badge: "bg-blue-50 text-blue-700 border-blue-200",
-      dot: "bg-blue-600 ring-4 ring-blue-100",
-    },
-    "ซ่อมเสร็จแล้ว": {
-      badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      dot: "bg-emerald-500 ring-4 ring-emerald-100",
-    },
-  };
-  return styles[status] || {
-    badge: "bg-slate-100 text-slate-600 border-slate-200",
-    dot: "bg-slate-400 ring-4 ring-slate-100",
-  };
-}
 
 export default function TrackRepairPage() {
   const { code } = useParams();
@@ -44,7 +26,7 @@ export default function TrackRepairPage() {
   const [repair, setRepair] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  
   const fetchRepairData = useCallback(async () => {
     try {
       setLoading(true);
@@ -74,7 +56,7 @@ export default function TrackRepairPage() {
     );
   }
   if (error) return <ErrorState error={error} onBack={() => router.push("/")} />;
-
+  
   const statusStyle = getStatusStyle(repair.status?.status_name);
 
   return (
@@ -122,21 +104,44 @@ export default function TrackRepairPage() {
           </div>
         </div>
 
-        {/* Main Grid Layout */}
+       {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Left Side: Core Info */}
+
+          {/* Left */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             <SectionCard title="รายละเอียดงานซ่อม" icon={<Package className="w-5 h-5" />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-6">
-                <InfoBox label="อาการเสียที่แจ้ง" value={repair.problem_description} icon={<Info className="w-4 h-4" />} />
-                <InfoBox label="วันที่รับเครื่อง" value={formatDate(repair.receive_date)} icon={<Clock className="w-4 h-4" />} />
-                
-                {/* Price Section with better visual */}
+                <InfoBox
+                  label="อาการเสียที่แจ้ง"
+                  value={repair?.problem_description}
+                  icon={<Info className="w-4 h-4" />}
+                />
+
+                <InfoBox
+                  label="วันที่รับเครื่อง"
+                  value={formatDate(repair?.receive_date)}
+                  icon={<Clock className="w-4 h-4" />}
+                />
+
+                <InfoBox
+                  label="วันที่ปิดงาน"
+                  value={formatDate(repair?.closed_at)}
+                  icon={<CheckCircle2 className="w-4 h-4" />}
+                />
+
                 <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                  <PriceCard label="ราคาประเมินเบื้องต้น" amount={repair.estimate_price} color="text-slate-600" />
-                  <PriceCard label="ยอดชำระสุทธิ" amount={repair.final_price} highlight color="text-blue-600" />
+                  <PriceCard
+                    label="ราคาประเมินเบื้องต้น"
+                    amount={repair?.estimate_price}
+                    color="text-slate-600"
+                  />
+                  <PriceCard
+                    label="ยอดชำระสุทธิ"
+                    amount={repair?.final_price}
+                    highlight
+                    color="text-blue-600"
+                  />
                 </div>
               </div>
             </SectionCard>
